@@ -63,6 +63,18 @@ function CaseDetailPage() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Update failed"),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteCase(caseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      queryClient.removeQueries({ queryKey: ["case", caseId] });
+      toast.success("Case deleted");
+      navigate({ to: "/cases" });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Delete failed"),
+  });
+
+
   if (isLoading) {
     return <div className="py-16 text-center text-sm text-muted-foreground">Loading case…</div>;
   }
