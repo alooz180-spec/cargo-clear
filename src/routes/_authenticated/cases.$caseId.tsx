@@ -102,7 +102,24 @@ function CaseDetailPage() {
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-mono text-lg font-semibold">{kase.ref}</span>
           <StatusBadge status={status} />
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setEditing(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </button>
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete case
+            </button>
+          </div>
         </div>
+
         <div className="mt-1 text-base font-medium">{kase.company}</div>
         <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
           <div>
