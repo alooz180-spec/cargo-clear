@@ -287,7 +287,7 @@ Deno.serve(async (req) => {
           font: courierBold,
           color: rgb(0.357, 0.42, 0.51),
         });
-        cover.drawText(sanitize(label) || label.replace(/[^\x20-\x7E]/g, ""), {
+        cover.drawText(sanitize(label), {
           x: left + 34,
           y,
           size: 11,
