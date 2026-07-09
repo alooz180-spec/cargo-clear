@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("export-case-pdf error", e);
-    return json({ error: e instanceof Error ? e.message : "Unexpected error" }, 500);
+    return json({ error: "Failed to generate PDF. Please try again." }, 500);
   }
 });
 
