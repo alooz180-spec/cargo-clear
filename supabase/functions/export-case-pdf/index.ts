@@ -147,7 +147,7 @@ Deno.serve(async (req) => {
       const name = (doc.file_name ?? doc.file_path ?? "").toLowerCase();
       const isTiff = name.endsWith(".tif") || name.endsWith(".tiff");
       if (isTiff) {
-        skipped.push(doc.file_name ?? coverLabel(doc.doc_type));
+        skipped.push(coverLabel(doc.doc_type));
         continue;
       }
 
@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
         .from("case-files")
         .download(doc.file_path);
       if (dlError || !fileData) {
-        skipped.push(doc.file_name ?? coverLabel(doc.doc_type));
+        skipped.push(coverLabel(doc.doc_type));
         continue;
       }
 
@@ -188,10 +188,10 @@ Deno.serve(async (req) => {
           });
           included.push(coverLabel(doc.doc_type));
         } else {
-          skipped.push(doc.file_name ?? coverLabel(doc.doc_type));
+          skipped.push(coverLabel(doc.doc_type));
         }
       } catch (_e) {
-        skipped.push(doc.file_name ?? coverLabel(doc.doc_type));
+        skipped.push(coverLabel(doc.doc_type));
       }
     }
 
