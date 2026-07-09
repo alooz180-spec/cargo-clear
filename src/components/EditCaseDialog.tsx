@@ -38,6 +38,8 @@ export function EditCaseDialog({
     mutationFn: () =>
       updateCase(kase.id, {
         company: company.trim(),
+        supplier: supplier.trim() || null,
+        vessel: vessel.trim() || null,
         bank: bank.trim(),
         amount: parseFloat(amount) || 0,
         currency,
