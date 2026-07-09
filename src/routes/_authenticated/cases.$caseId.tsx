@@ -295,6 +295,17 @@ function DocumentRow({
             </button>
           </>
         )}
+        <button
+          disabled={busy}
+          onClick={() =>
+            run(() => addDocumentCopy(caseId, doc.doc_type, doc.sort_order), "Could not add copy")
+          }
+          aria-label={`Add another ${doc.doc_type}`}
+          title="Add another copy (e.g. another shipment or truck)"
+          className="rounded-md border border-input p-1.5 text-muted-foreground hover:bg-secondary hover:text-primary disabled:opacity-60"
+        >
+          <CopyPlus className="h-3.5 w-3.5" />
+        </button>
         {doc.is_extra && (
           <button
             disabled={busy}
