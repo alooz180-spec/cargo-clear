@@ -318,6 +318,8 @@ const ar: Dict = {
   "dialog.editCase": "تعديل المعاملة",
   "dialog.autoCreateNote": "يتم إنشاء رقم مرجعي والمستندات القياسية تلقائياً.",
   "field.company": "الشركة",
+  "field.supplier": "المورّد",
+  "field.vessel": "الباخرة",
   "field.bank": "المصرف",
   "field.amount": "المبلغ",
   "field.currency": "العملة",
