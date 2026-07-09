@@ -89,6 +89,18 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
             </select>
           </div>
           <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              {t("field.supplier")} <span className="font-normal">{t("field.optional")}</span>
+            </label>
+            <input value={supplier} onChange={(e) => setSupplier(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              {t("field.vessel")} <span className="font-normal">{t("field.optional")}</span>
+            </label>
+            <input value={vessel} onChange={(e) => setVessel(e.target.value)} className={inputCls} />
+          </div>
+          <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.bank")}</label>
             <select value={bankChoice} onChange={(e) => setBankChoice(e.target.value)} className={inputCls}>
               {IRAQI_BANKS.map((b) => (
