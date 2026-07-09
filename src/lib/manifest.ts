@@ -35,6 +35,7 @@ export const DEFAULT_DOC_TYPES = [
   "Shipping Documents",
   "البيان الكمركي",
   "Exit Permission",
+  "البيان الكمركي المسبق",
 ] as const;
 
 export const STATUS_LABEL: Record<CaseStatus, string> = {
