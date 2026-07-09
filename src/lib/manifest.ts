@@ -33,7 +33,7 @@ export const DEFAULT_DOC_TYPES = [
   "Packing List",
   "Certificate of Origin",
   "Shipping Documents",
-  "Board Document",
+  "البيان الكمركي",
   "Exit Permission",
 ] as const;
 

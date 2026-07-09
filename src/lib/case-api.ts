@@ -155,7 +155,7 @@ const ALL_VERIFIED: SeedDoc[] = [
   { type: "Packing List", file: "PACKING_LIST.pdf", verified: true },
   { type: "Certificate of Origin", file: "COO_CHAMBER_DXB.pdf", verified: true },
   { type: "Shipping Documents", file: "BILL_OF_LADING.pdf", verified: true },
-  { type: "Board Document", file: "BOARD_RESOLUTION.pdf", verified: true },
+  { type: "البيان الكمركي", file: "CUSTOMS_DECLARATION.pdf", verified: true },
   { type: "Exit Permission", file: "EXIT_PERMISSION.pdf", verified: true },
 ];
 
