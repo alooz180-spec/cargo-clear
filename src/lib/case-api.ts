@@ -48,6 +48,42 @@ export async function setCaseStatus(id: string, status: CaseStatus) {
   if (error) throw error;
 }
 
+export async function updateCase(
+  id: string,
+  input: {
+    company: string;
+    bank: string;
+    amount: number;
+    currency: string;
+    notes: string | null;
+  },
+) {
+  const { error } = await supabase.from("cases").update(input).eq("id", id);
+  if (error) throw error;
+}
+
+/**
+ * Delete a case and everything under it. Storage files are NOT removed by the
+ * database cascade, so we first list and remove every file under the case's
+ * storage folder, then delete the case row (its case_documents rows cascade).
+ */
+export async function deleteCase(caseId: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Not signed in");
+  const prefix = `${userData.user.id}/${caseId}`;
+  const { data: files, error: listError } = await supabase.storage
+    .from("case-files")
+    .list(prefix, { limit: 1000 });
+  if (listError) throw listError;
+  if (files && files.length > 0) {
+    const paths = files.map((f) => `${prefix}/${f.name}`);
+    const { error: removeError } = await supabase.storage.from("case-files").remove(paths);
+    if (removeError) throw removeError;
+  }
+  const { error } = await supabase.from("cases").delete().eq("id", caseId);
+  if (error) throw error;
+}
+
 export async function setDocVerified(docId: string, verified: boolean) {
   const { error } = await supabase.from("case_documents").update({ verified }).eq("id", docId);
   if (error) throw error;
