@@ -33,6 +33,28 @@ function coverLabel(docType: string): string {
   return COVER_DOC_LABELS[docType] ?? docType;
 }
 
+// The cover is rendered with a WinAnsi (Latin) font for reliable output, so
+// map the known Arabic bank names to English. Unknown banks fall back to
+// sanitize() which strips characters the Latin font cannot encode.
+const BANK_LABELS: Record<string, string> = {
+  "الاهلي العراقي": "Al-Ahli Iraqi Bank",
+  "الاتحاد الاردني": "Union Bank of Jordan",
+  "المنصور": "Al-Mansour Bank",
+  "بغداد": "Baghdad Bank",
+};
+
+function bankLabel(bank: string): string {
+  return BANK_LABELS[bank?.trim()] ?? bank;
+}
+
+// Final safety net: replace any character the Helvetica (WinAnsi) font cannot
+// encode so cover rendering never throws on unexpected input.
+function sanitize(str: string): string {
+  return String(str ?? "")
+    .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, "")
+    .trim();
+}
+
 const A4 = { width: 595.28, height: 841.89 };
 const MARGIN = 36;
 
