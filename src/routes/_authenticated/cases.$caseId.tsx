@@ -138,6 +138,18 @@ function CaseDetailPage() {
             <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.bank")}</dt>
             <dd className="mt-0.5">{kase.bank}</dd>
           </div>
+          {kase.supplier && (
+            <div>
+              <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.supplier")}</dt>
+              <dd className="mt-0.5">{kase.supplier}</dd>
+            </div>
+          )}
+          {kase.vessel && (
+            <div>
+              <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.vessel")}</dt>
+              <dd className="mt-0.5">{kase.vessel}</dd>
+            </div>
+          )}
           <div>
             <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.amount")}</dt>
             <dd className="mt-0.5 font-mono">{formatAmount(kase.amount, kase.currency)}</dd>
