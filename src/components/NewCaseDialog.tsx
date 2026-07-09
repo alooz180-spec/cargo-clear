@@ -5,16 +5,21 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createCase } from "@/lib/case-api";
-import { CURRENCIES } from "@/lib/manifest";
+import { CURRENCIES, COMPANIES, IRAQI_BANKS } from "@/lib/manifest";
+
+const OTHER_BANK = "__other__";
 
 export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [company, setCompany] = useState("");
-  const [bank, setBank] = useState("");
+  const [company, setCompany] = useState<string>(COMPANIES[0]);
+  const [bankChoice, setBankChoice] = useState<string>(IRAQI_BANKS[0]);
+  const [bankOther, setBankOther] = useState("");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<string>("USD");
   const [notes, setNotes] = useState("");
+
+  const bank = bankChoice === OTHER_BANK ? bankOther : bankChoice;
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -69,11 +74,33 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
         <div className="mt-4 space-y-3">
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Company</label>
-            <input required value={company} onChange={(e) => setCompany(e.target.value)} className={inputCls} />
+            <select required value={company} onChange={(e) => setCompany(e.target.value)} className={inputCls}>
+              {COMPANIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Bank</label>
-            <input required value={bank} onChange={(e) => setBank(e.target.value)} className={inputCls} />
+            <select value={bankChoice} onChange={(e) => setBankChoice(e.target.value)} className={inputCls}>
+              {IRAQI_BANKS.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+              <option value={OTHER_BANK}>Other…</option>
+            </select>
+            {bankChoice === OTHER_BANK && (
+              <input
+                required
+                value={bankOther}
+                onChange={(e) => setBankOther(e.target.value)}
+                placeholder="Bank name"
+                className={`${inputCls} mt-2`}
+              />
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">

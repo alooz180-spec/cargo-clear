@@ -8,7 +8,22 @@ export type CaseWithProgress = CaseRow & {
   case_documents: Pick<DocRow, "id" | "verified">[];
 };
 
-export const CURRENCIES = ["USD", "EUR", "AED", "GBP"] as const;
+export const CURRENCIES = ["USD", "IQD", "EUR", "AED", "GBP"] as const;
+
+// The three companies a transfer can be attached to.
+export const COMPANIES = [
+  "JABAL ALANQAA",
+  "GABAT ALGHARBIAH",
+  "FK NOBEL",
+] as const;
+
+// Iraqi banks in use. Users can also enter another bank via "Other".
+export const IRAQI_BANKS = [
+  "الاهلي العراقي",
+  "الاتحاد الاردني",
+  "المنصور",
+  "بغداد",
+] as const;
 
 export const ACCEPTED_FILE_TYPES = ".pdf,.png,.jpg,.jpeg,.tif";
 
