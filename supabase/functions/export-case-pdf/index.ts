@@ -229,8 +229,8 @@ Deno.serve(async (req) => {
       y -= 30;
 
       const facts: [string, string][] = [
-        ["Company", String(kase.company ?? "")],
-        ["Bank", String(kase.bank ?? "")],
+        ["Company", sanitize(String(kase.company ?? ""))],
+        ["Bank", sanitize(bankLabel(String(kase.bank ?? "")))],
         [
           "Amount",
           `${Number(kase.amount).toLocaleString("en-US", {
