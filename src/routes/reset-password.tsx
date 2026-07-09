@@ -54,21 +54,29 @@ function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={t("lang.label")}
+        className="absolute top-4 end-4 rounded-md border border-input px-2.5 py-1 font-mono text-xs font-medium text-muted-foreground hover:bg-secondary"
+      >
+        {t("lang.toggle")}
+      </button>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="font-mono text-lg font-semibold tracking-[0.35em] text-foreground uppercase">
             Manifest
           </div>
           <div className="mt-1 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
-            TT document control
+            {t("app.tagline")}
           </div>
         </div>
         <form
           onSubmit={handleSubmit}
           className="rounded-lg border border-border bg-card p-6 shadow-sm"
         >
-          <h1 className="text-base font-semibold">Set new password</h1>
+          <h1 className="text-base font-semibold">{t("reset.title")}</h1>
           {valid ? (
             <>
               <div className="mt-4 space-y-3">
@@ -77,7 +85,7 @@ function ResetPasswordPage() {
                     htmlFor="password"
                     className="mb-1 block text-xs font-medium text-muted-foreground"
                   >
-                    New password
+                    {t("reset.newPassword")}
                   </label>
                   <input
                     id="password"
@@ -95,7 +103,7 @@ function ResetPasswordPage() {
                     htmlFor="confirmPassword"
                     className="mb-1 block text-xs font-medium text-muted-foreground"
                   >
-                    Confirm new password
+                    {t("reset.confirmPassword")}
                   </label>
                   <input
                     id="confirmPassword"
@@ -114,12 +122,12 @@ function ResetPasswordPage() {
                 disabled={busy}
                 className="mt-5 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
               >
-                {busy ? "Please wait…" : "Update password"}
+                {busy ? t("auth.pleaseWait") : t("reset.update")}
               </button>
             </>
           ) : (
             <p className="mt-4 text-sm text-muted-foreground">
-              The reset link appears to be invalid. Please request a new one from the sign-in page.
+              {t("reset.invalid")}
             </p>
           )}
         </form>
