@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 import type { CaseRow, CaseStatus, CaseWithProgress, DocRow } from "./manifest";
 
 export async function listCases(): Promise<CaseWithProgress[]> {
-  await maybeSeedSampleCases();
   const { data, error } = await supabase
     .from("cases")
     .select("*, case_documents(id, verified)")
