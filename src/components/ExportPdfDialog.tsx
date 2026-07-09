@@ -141,7 +141,7 @@ export function ExportPdfDialog({
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {anyMissing && (
-            <div className="mb-4 rounded-md border-s-2 border-status-progress bg-status-progress-soft px-3 py-2 text-xs text-status-progress">
+            <div className="mb-4 rounded-md border-s-2 border-status-progress bg-status-progress-bg px-3 py-2 text-xs text-status-progress">
               {t("export.warning")}
             </div>
           )}
