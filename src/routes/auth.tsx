@@ -35,7 +35,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         navigate({ to: "/dashboard", replace: true });
-      } else {
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -44,6 +44,12 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Account created. Check your email to confirm, then sign in.");
         setMode("signin");
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("Password reset link sent. Check your email.");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
