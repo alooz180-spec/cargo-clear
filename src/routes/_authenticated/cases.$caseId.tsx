@@ -1,13 +1,14 @@
 import { useRef, useState, type FormEvent } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CopyPlus, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, CopyPlus, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   addDocumentCopy,
   addExtraDocument,
   attachFile,
+  deleteCase,
   deleteDocument,
   getCase,
   openFile,
@@ -26,6 +27,8 @@ import {
   type DocRow,
 } from "@/lib/manifest";
 import { ProgressBar, StatusBadge, VerifiedStamp } from "@/components/manifest-ui";
+import { EditCaseDialog } from "@/components/EditCaseDialog";
+
 
 export const Route = createFileRoute("/_authenticated/cases/$caseId")({
   head: () => ({
