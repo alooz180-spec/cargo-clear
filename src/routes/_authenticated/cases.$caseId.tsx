@@ -226,7 +226,7 @@ function DocumentRow({
           {doc.doc_type}
           {doc.is_extra && (
             <span className="rounded-sm bg-secondary px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
-              Extra
+              {isCopy ? "copy" : "Extra"}
             </span>
           )}
           {doc.verified && <VerifiedStamp />}
