@@ -1,10 +1,11 @@
 import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, CopyPlus, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  addDocumentCopy,
   addExtraDocument,
   attachFile,
   deleteDocument,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/case-api";
 import {
   ACCEPTED_FILE_TYPES,
+  DEFAULT_DOC_TYPES,
   daysOpen,
   formatAmount,
   formatDate,
@@ -209,6 +211,11 @@ function DocumentRow({
     run(() => attachFile(doc, caseId, file), "Upload failed");
   };
 
+  // A copy is an extra row that shares the name of a standard manifest document
+  // (e.g. a second البيان الكمركي / اذن خروج for another shipment or truck).
+  const isCopy =
+    doc.is_extra && (DEFAULT_DOC_TYPES as readonly string[]).includes(doc.doc_type);
+
   return (
     <li className="flex flex-col gap-2 px-5 py-3.5 sm:flex-row sm:items-center sm:gap-4">
       <span className="font-mono text-xs text-muted-foreground">
@@ -219,7 +226,7 @@ function DocumentRow({
           {doc.doc_type}
           {doc.is_extra && (
             <span className="rounded-sm bg-secondary px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
-              Extra
+              {isCopy ? "copy" : "Extra"}
             </span>
           )}
           {doc.verified && <VerifiedStamp />}
@@ -288,6 +295,17 @@ function DocumentRow({
             </button>
           </>
         )}
+        <button
+          disabled={busy}
+          onClick={() =>
+            run(() => addDocumentCopy(caseId, doc.doc_type, doc.sort_order), "Could not add copy")
+          }
+          aria-label={`Add another ${doc.doc_type}`}
+          title="Add another copy (e.g. another shipment or truck)"
+          className="rounded-md border border-input p-1.5 text-muted-foreground hover:bg-secondary hover:text-primary disabled:opacity-60"
+        >
+          <CopyPlus className="h-3.5 w-3.5" />
+        </button>
         {doc.is_extra && (
           <button
             disabled={busy}

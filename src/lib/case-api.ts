@@ -18,7 +18,11 @@ export async function getCase(id: string): Promise<CaseRow & { case_documents: D
     .eq("id", id)
     .single();
   if (error) throw error;
-  data.case_documents.sort((a, b) => a.sort_order - b.sort_order);
+  // Sort by manifest order, then by creation time so copies sit right after
+  // the document they were duplicated from.
+  data.case_documents.sort(
+    (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at),
+  );
   return data;
 }
 
@@ -82,6 +86,19 @@ export async function addExtraDocument(caseId: string, name: string, sortOrder: 
   const { error } = await supabase
     .from("case_documents")
     .insert({ case_id: caseId, doc_type: name, sort_order: sortOrder, is_extra: true });
+  if (error) throw error;
+}
+
+/**
+ * Add another copy of an existing document type — e.g. a second البيان الكمركي or
+ * اذن خروج when a transfer spans multiple shipments/trucks. The copy keeps the
+ * same manifest position (sort_order) and is individually attachable, verifiable
+ * and removable.
+ */
+export async function addDocumentCopy(caseId: string, docType: string, sortOrder: number) {
+  const { error } = await supabase
+    .from("case_documents")
+    .insert({ case_id: caseId, doc_type: docType, sort_order: sortOrder, is_extra: true });
   if (error) throw error;
 }
 
@@ -155,7 +172,7 @@ const ALL_VERIFIED: SeedDoc[] = [
   { type: "Packing List", file: "PACKING_LIST.pdf", verified: true },
   { type: "Certificate of Origin", file: "COO_CHAMBER_DXB.pdf", verified: true },
   { type: "Shipping Documents", file: "BILL_OF_LADING.pdf", verified: true },
-  { type: "Board Document", file: "BOARD_RESOLUTION.pdf", verified: true },
+  { type: "البيان الكمركي", file: "CUSTOMS_DECLARATION.pdf", verified: true },
   { type: "Exit Permission", file: "EXIT_PERMISSION.pdf", verified: true },
 ];
 
