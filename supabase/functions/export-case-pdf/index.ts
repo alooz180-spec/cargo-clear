@@ -257,7 +257,7 @@ Deno.serve(async (req) => {
           font: helvBold,
           color: rgb(0.357, 0.42, 0.51),
         });
-        cover.drawText(val, {
+        cover.drawText(sanitize(val), {
           x: left + 120,
           y,
           size: 12,
