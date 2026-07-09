@@ -16,7 +16,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "recovery">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,7 +35,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         navigate({ to: "/dashboard", replace: true });
-      } else {
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -44,6 +44,12 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Account created. Check your email to confirm, then sign in.");
         setMode("signin");
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("Password reset link sent. Check your email.");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
@@ -68,7 +74,7 @@ function AuthPage() {
           className="rounded-lg border border-border bg-card p-6 shadow-sm"
         >
           <h1 className="text-base font-semibold">
-            {mode === "signin" ? "Sign in" : "Create account"}
+            {mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Reset password"}
           </h1>
           <div className="mt-4 space-y-3">
             <div>
@@ -85,38 +91,59 @@ function AuthPage() {
                 className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="mb-1 block text-xs font-medium text-muted-foreground"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
+            {mode !== "recovery" && (
+              <div>
+                <label
+                  htmlFor="password"
+                  className="mb-1 block text-xs font-medium text-muted-foreground"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={6}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-md border border-input bg-card px-3 py-2 font-mono text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            )}
           </div>
           <button
             type="submit"
             disabled={busy}
             className="mt-5 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
           >
-            {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Sign up"}
+            {busy
+              ? "Please wait…"
+              : mode === "signin"
+                ? "Sign in"
+                : mode === "signup"
+                  ? "Sign up"
+                  : "Send reset link"}
           </button>
+          {mode === "signin" && (
+            <button
+              type="button"
+              onClick={() => setMode("recovery")}
+              className="mt-3 w-full text-center text-xs text-muted-foreground hover:text-foreground"
+            >
+              Forgot password?
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
             className="mt-3 w-full text-center text-xs text-muted-foreground hover:text-foreground"
           >
-            {mode === "signin" ? "No account yet? Create one" : "Already registered? Sign in"}
+            {mode === "signup"
+              ? "Already registered? Sign in"
+              : mode === "recovery"
+                ? "Back to sign in"
+                : "No account yet? Create one"}
           </button>
         </form>
       </div>
