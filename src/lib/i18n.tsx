@@ -144,6 +144,8 @@ const en: Dict = {
   "dialog.editCase": "Edit case",
   "dialog.autoCreateNote": "A reference and the standard documents are created automatically.",
   "field.company": "Company",
+  "field.supplier": "Supplier",
+  "field.vessel": "Vessel",
   "field.bank": "Bank",
   "field.amount": "Amount",
   "field.currency": "Currency",
