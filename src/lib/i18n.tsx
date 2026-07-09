@@ -116,6 +116,22 @@ const en: Dict = {
   "case.reopen": "Reopen",
   "case.submitted": "Submitted to {bank}. Case archived.",
 
+  // Export PDF
+  "export.button": "Export PDF",
+  "export.title": "Combined PDF export",
+  "export.subtitle": "Merge the attached documents into a single PDF for the bank.",
+  "export.selectAll": "Select all",
+  "export.selectNone": "Select none",
+  "export.includeCover": "Include cover page",
+  "export.notAttached": "not attached",
+  "export.warning": "This case isn't complete — some documents are missing. You can still export what's attached.",
+  "export.generate": "Generate PDF",
+  "export.generating": "Generating…",
+  "export.none": "No documents are attached yet.",
+  "export.success": "PDF generated",
+  "export.successSkipped": "PDF generated. {n} item(s) couldn't be included.",
+  "export.failed": "Could not generate PDF",
+
   // Delete confirm
   "delete.title": "Delete case",
   "delete.body": "This will permanently remove case {ref}, all of its documents, and every attached file. This action cannot be undone.",
