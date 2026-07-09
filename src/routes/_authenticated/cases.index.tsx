@@ -41,7 +41,7 @@ function CasesPage() {
       .filter((c) =>
         q === ""
           ? true
-          : [c.company, c.bank, c.ref, String(c.amount)].some((v) =>
+          : [c.company, c.supplier ?? "", c.vessel ?? "", c.bank, c.ref, String(c.amount)].some((v) =>
               v.toLowerCase().includes(q),
             ),
       );
