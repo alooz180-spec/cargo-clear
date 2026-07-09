@@ -42,11 +42,15 @@ export const Route = createFileRoute("/_authenticated/cases/$caseId")({
 
 function CaseDetailPage() {
   const { caseId } = Route.useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: kase, isLoading } = useQuery({
     queryKey: ["case", caseId],
     queryFn: () => getCase(caseId),
   });
+
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["case", caseId] });
