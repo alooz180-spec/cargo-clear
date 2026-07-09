@@ -288,6 +288,22 @@ const ar: Dict = {
   "case.reopen": "إعادة فتح",
   "case.submitted": "أُرسلت إلى {bank}. تم أرشفة المعاملة.",
 
+  // Export PDF
+  "export.button": "تصدير PDF",
+  "export.title": "تصدير PDF مُجمّع",
+  "export.subtitle": "دمج المستندات المرفقة في ملف PDF واحد لإرساله إلى المصرف.",
+  "export.selectAll": "تحديد الكل",
+  "export.selectNone": "إلغاء التحديد",
+  "export.includeCover": "تضمين صفحة الغلاف",
+  "export.notAttached": "غير مُرفق",
+  "export.warning": "هذه المعاملة غير مكتملة — بعض المستندات مفقودة. لا يزال بإمكانك تصدير المُرفق منها.",
+  "export.generate": "إنشاء PDF",
+  "export.generating": "جارٍ الإنشاء…",
+  "export.none": "لا توجد مستندات مرفقة بعد.",
+  "export.success": "تم إنشاء ملف PDF",
+  "export.successSkipped": "تم إنشاء ملف PDF. تعذّر تضمين {n} عنصر.",
+  "export.failed": "تعذّر إنشاء ملف PDF",
+
   // Delete confirm
   "delete.title": "حذف المعاملة",
   "delete.body": "سيؤدي هذا إلى حذف المعاملة {ref} وجميع مستنداتها وكل ملف مرفق نهائياً. لا يمكن التراجع عن هذا الإجراء.",
