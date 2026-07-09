@@ -227,6 +227,13 @@ function CaseDetailPage() {
 
       <EditCaseDialog open={editing} onClose={() => setEditing(false)} kase={kase} />
 
+      <ExportPdfDialog
+        open={exporting}
+        onClose={() => setExporting(false)}
+        kase={kase}
+        docs={docs}
+      />
+
       {confirmingDelete && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 px-4"
