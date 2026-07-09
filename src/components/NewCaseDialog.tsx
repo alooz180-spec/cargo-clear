@@ -29,6 +29,8 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
     mutationFn: () =>
       createCase({
         company: company.trim(),
+        supplier: supplier.trim() || null,
+        vessel: vessel.trim() || null,
         bank: bank.trim(),
         amount: parseFloat(amount) || 0,
         currency,
