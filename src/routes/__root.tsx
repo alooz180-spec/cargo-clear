@@ -87,10 +87,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "Track each telegraphic transfer as a case and guarantee every required document is collected and verified before bank submission.",
+          "Document checklist and case tracker for UAE import TT bank payments. Collect, verify and submit complete document sets per transfer.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Manifest — TT Document Control" },
+      { name: "twitter:description", content: "Document checklist and case tracker for UAE import TT bank payments. Collect, verify and submit complete document sets per transfer." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/QqCeEkA8zle6gwGoULjG5Tmji9S2/social-images/social-1783600754404-fk_nobel_manifest_logo_orange.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/QqCeEkA8zle6gwGoULjG5Tmji9S2/social-images/social-1783600754404-fk_nobel_manifest_logo_orange.webp" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
