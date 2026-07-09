@@ -28,6 +28,7 @@ import {
 } from "@/lib/manifest";
 import { ProgressBar, StatusBadge, VerifiedStamp } from "@/components/manifest-ui";
 import { EditCaseDialog } from "@/components/EditCaseDialog";
+import { useI18n } from "@/lib/i18n";
 
 
 export const Route = createFileRoute("/_authenticated/cases/$caseId")({
@@ -44,6 +45,7 @@ function CaseDetailPage() {
   const { caseId } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: kase, isLoading } = useQuery({
@@ -60,7 +62,7 @@ function CaseDetailPage() {
   const statusMutation = useMutation({
     mutationFn: (status: CaseStatus) => setCaseStatus(caseId, status),
     onSuccess: invalidate,
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Update failed"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : t("toast.updateFailed")),
   });
 
   const deleteMutation = useMutation({
@@ -68,18 +70,18 @@ function CaseDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cases"] });
       queryClient.removeQueries({ queryKey: ["case", caseId] });
-      toast.success("Case deleted");
+      toast.success(t("toast.caseDeleted"));
       navigate({ to: "/cases" });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Delete failed"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : t("toast.deleteFailed")),
   });
 
 
   if (isLoading) {
-    return <div className="py-16 text-center text-sm text-muted-foreground">Loading case…</div>;
+    return <div className="py-16 text-center text-sm text-muted-foreground">{t("case.loading")}</div>;
   }
   if (!kase) {
-    return <div className="py-16 text-center text-sm text-muted-foreground">Case not found.</div>;
+    return <div className="py-16 text-center text-sm text-muted-foreground">{t("case.notFound")}</div>;
   }
 
   const docs = kase.case_documents;
@@ -87,14 +89,15 @@ function CaseDetailPage() {
   const allVerified = docs.length > 0 && docs.every((d) => d.verified);
   const status = kase.status as CaseStatus;
 
+
   return (
     <div>
       <Link
         to="/cases"
         className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        All cases
+        <ArrowLeft className="h-3.5 w-3.5 rtl:-scale-x-100" />
+        {t("case.backAll")}
       </Link>
 
       {/* Header */}
@@ -102,20 +105,20 @@ function CaseDetailPage() {
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-mono text-lg font-semibold">{kase.ref}</span>
           <StatusBadge status={status} />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ms-auto flex items-center gap-2">
             <button
               onClick={() => setEditing(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
             >
               <Pencil className="h-3.5 w-3.5" />
-              Edit
+              {t("case.edit")}
             </button>
             <button
               onClick={() => setConfirmingDelete(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" />
-              Delete case
+              {t("case.delete")}
             </button>
           </div>
         </div>
@@ -123,23 +126,23 @@ function CaseDetailPage() {
         <div className="mt-1 text-base font-medium">{kase.company}</div>
         <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
           <div>
-            <dt className="text-xs text-muted-foreground uppercase tracking-wide">Bank</dt>
+            <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.bank")}</dt>
             <dd className="mt-0.5">{kase.bank}</dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground uppercase tracking-wide">Amount</dt>
+            <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.amount")}</dt>
             <dd className="mt-0.5 font-mono">{formatAmount(kase.amount, kase.currency)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground uppercase tracking-wide">Opened</dt>
+            <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("case.opened")}</dt>
             <dd className="mt-0.5 font-mono">
               {formatDate(kase.created_at)}{" "}
-              <span className="text-muted-foreground">· {daysOpen(kase.created_at)}d ago</span>
+              <span className="text-muted-foreground">· {t("case.daysAgo", { n: daysOpen(kase.created_at) })}</span>
             </dd>
           </div>
         </dl>
         {kase.notes && (
-          <blockquote className="mt-4 border-l-2 border-primary bg-primary-soft/50 px-3 py-2 text-sm text-muted-foreground italic">
+          <blockquote className="mt-4 border-s-2 border-primary bg-primary-soft/50 px-3 py-2 text-sm text-muted-foreground italic">
             "{kase.notes}"
           </blockquote>
         )}
@@ -149,9 +152,9 @@ function CaseDetailPage() {
       <section className="mt-6 rounded-lg border border-border bg-card">
         <div className="border-b border-border px-5 py-3.5">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-sm font-semibold">Document manifest</h2>
+            <h2 className="text-sm font-semibold">{t("manifest.title")}</h2>
             <span className="font-mono text-xs text-muted-foreground">
-              {p.verified}/{p.total} verified
+              {t("manifest.verifiedCount", { v: p.verified, t: p.total })}
             </span>
           </div>
           <ProgressBar verified={p.verified} total={p.total} className="mt-2.5" />
@@ -179,11 +182,11 @@ function CaseDetailPage() {
               onClick={() => statusMutation.mutate("complete")}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Mark complete
+              {t("case.markComplete")}
             </button>
             {!allVerified && (
               <span className="text-xs text-muted-foreground">
-                All documents must be verified before the case can be marked complete.
+                {t("case.mustVerifyAll")}
               </span>
             )}
           </div>
@@ -195,20 +198,20 @@ function CaseDetailPage() {
               onClick={() => statusMutation.mutate("sent")}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
             >
-              Mark sent to bank
+              {t("case.markSent")}
             </button>
             <button
               disabled={statusMutation.isPending}
               onClick={() => statusMutation.mutate("in_progress")}
               className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-60"
             >
-              Reopen
+              {t("case.reopen")}
             </button>
           </div>
         )}
         {status === "sent" && (
           <p className="font-mono text-sm text-status-sent">
-            Submitted to {kase.bank}. Case archived.
+            {t("case.submitted", { bank: kase.bank })}
           </p>
         )}
       </div>
@@ -221,17 +224,15 @@ function CaseDetailPage() {
           onClick={() => !deleteMutation.isPending && setConfirmingDelete(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="Delete case"
+          aria-label={t("delete.title")}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg"
           >
-            <h2 className="text-base font-semibold">Delete case</h2>
+            <h2 className="text-base font-semibold">{t("delete.title")}</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              This will permanently remove case{" "}
-              <span className="font-mono text-foreground">{kase.ref}</span>, all of its documents,
-              and every attached file. This action cannot be undone.
+              {t("delete.body", { ref: kase.ref })}
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -240,7 +241,7 @@ function CaseDetailPage() {
                 onClick={() => setConfirmingDelete(false)}
                 className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-60"
               >
-                Cancel
+                {t("delete.cancel")}
               </button>
               <button
                 type="button"
@@ -248,7 +249,7 @@ function CaseDetailPage() {
                 onClick={() => deleteMutation.mutate()}
                 className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
               >
-                {deleteMutation.isPending ? "Deleting…" : "Delete case"}
+                {deleteMutation.isPending ? t("delete.deleting") : t("delete.confirm")}
               </button>
             </div>
           </div>
@@ -270,6 +271,7 @@ function DocumentRow({
   caseId: string;
   onChanged: () => void;
 }) {
+  const { t, docLabel } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
@@ -287,7 +289,7 @@ function DocumentRow({
 
   const handleFile = (file: File | null) => {
     if (!file) return;
-    run(() => attachFile(doc, caseId, file), "Upload failed");
+    run(() => attachFile(doc, caseId, file), t("toast.uploadFailed"));
   };
 
   // A copy is an extra row that shares the name of a standard manifest document
@@ -302,10 +304,10 @@ function DocumentRow({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2.5 text-sm font-medium">
-          {doc.doc_type}
+          {docLabel(doc.doc_type)}
           {doc.is_extra && (
             <span className="rounded-sm bg-secondary px-1.5 py-0.5 font-mono text-[10px] tracking-wide text-muted-foreground uppercase">
-              {isCopy ? "copy" : "Extra"}
+              {isCopy ? t("doc.badge.copy") : t("doc.badge.extra")}
             </span>
           )}
           {doc.verified && <VerifiedStamp />}
@@ -317,14 +319,14 @@ function DocumentRow({
               {doc.file_path && (
                 <button
                   onClick={() => doc.file_path && openFile(doc.file_path)}
-                  className="ml-2 text-primary underline underline-offset-2 hover:text-primary-deep"
+                  className="ms-2 text-primary underline underline-offset-2 hover:text-primary-deep"
                 >
-                  view
+                  {t("doc.view")}
                 </button>
               )}
             </span>
           ) : (
-            <span className="text-muted-foreground italic">Not attached</span>
+            <span className="text-muted-foreground italic">{t("doc.notAttached")}</span>
           )}
         </div>
       </div>
@@ -347,27 +349,27 @@ function DocumentRow({
               className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary disabled:opacity-60"
             >
               <Paperclip className="h-3.5 w-3.5" />
-              {busy ? "Uploading…" : "Attach"}
+              {busy ? t("doc.uploading") : t("doc.attach")}
             </button>
           </>
         ) : (
           <>
             <button
               disabled={busy}
-              onClick={() => run(() => setDocVerified(doc.id, !doc.verified), "Update failed")}
+              onClick={() => run(() => setDocVerified(doc.id, !doc.verified), t("toast.updateFailed"))}
               className={
                 doc.verified
                   ? "rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary disabled:opacity-60"
                   : "rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary-deep disabled:opacity-60"
               }
             >
-              {doc.verified ? "Unverify" : "Verify"}
+              {doc.verified ? t("doc.unverify") : t("doc.verify")}
             </button>
             <button
               disabled={busy}
-              onClick={() => run(() => removeFile(doc), "Remove failed")}
-              aria-label="Remove file"
-              title="Remove file (un-verifies the document)"
+              onClick={() => run(() => removeFile(doc), t("toast.removeFailed"))}
+              aria-label={t("doc.removeAria")}
+              title={t("doc.removeTitle")}
               className="rounded-md border border-input p-1.5 text-muted-foreground hover:bg-secondary hover:text-destructive disabled:opacity-60"
             >
               <X className="h-3.5 w-3.5" />
@@ -377,10 +379,10 @@ function DocumentRow({
         <button
           disabled={busy}
           onClick={() =>
-            run(() => addDocumentCopy(caseId, doc.doc_type, doc.sort_order), "Could not add copy")
+            run(() => addDocumentCopy(caseId, doc.doc_type, doc.sort_order), t("toast.addCopyFailed"))
           }
-          aria-label={`Add another ${doc.doc_type}`}
-          title="Add another copy (e.g. another shipment or truck)"
+          aria-label={t("doc.addCopyAria")}
+          title={t("doc.addCopyTitle")}
           className="rounded-md border border-input p-1.5 text-muted-foreground hover:bg-secondary hover:text-primary disabled:opacity-60"
         >
           <CopyPlus className="h-3.5 w-3.5" />
@@ -388,9 +390,9 @@ function DocumentRow({
         {doc.is_extra && (
           <button
             disabled={busy}
-            onClick={() => run(() => deleteDocument(doc), "Delete failed")}
-            aria-label="Delete document row"
-            title="Delete this document row"
+            onClick={() => run(() => deleteDocument(doc), t("toast.deleteFailed"))}
+            aria-label={t("doc.deleteRowAria")}
+            title={t("doc.deleteRowTitle")}
             className="rounded-md border border-input p-1.5 text-muted-foreground hover:bg-secondary hover:text-destructive disabled:opacity-60"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -410,6 +412,7 @@ function AddDocumentControl({
   nextSortOrder: number;
   onChanged: () => void;
 }) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -422,7 +425,7 @@ function AddDocumentControl({
       setName("");
       onChanged();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not add document");
+      toast.error(err instanceof Error ? err.message : t("toast.addDocFailed"));
     } finally {
       setBusy(false);
     }
@@ -433,7 +436,7 @@ function AddDocumentControl({
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Add another document (e.g. Insurance Certificate)…"
+        placeholder={t("doc.addPlaceholder")}
         className="flex-1 rounded-md border border-input bg-card px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
       />
       <button
@@ -442,7 +445,7 @@ function AddDocumentControl({
         className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary disabled:opacity-50"
       >
         <Plus className="h-3.5 w-3.5" />
-        Add
+        {t("doc.add")}
       </button>
     </form>
   );

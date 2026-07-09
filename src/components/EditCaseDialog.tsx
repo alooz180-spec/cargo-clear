@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { updateCase } from "@/lib/case-api";
 import { CURRENCIES, COMPANIES, IRAQI_BANKS, type CaseRow } from "@/lib/manifest";
+import { useI18n } from "@/lib/i18n";
 
 const OTHER_BANK = "__other__";
 
@@ -18,6 +19,7 @@ export function EditCaseDialog({
   kase: CaseRow;
 }) {
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const [company, setCompany] = useState<string>(
     COMPANIES.includes(kase.company as (typeof COMPANIES)[number]) ? kase.company : COMPANIES[0],
   );
@@ -42,10 +44,10 @@ export function EditCaseDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["case", kase.id] });
       queryClient.invalidateQueries({ queryKey: ["cases"] });
-      toast.success(`Case ${kase.ref} updated`);
+      toast.success(t("toast.caseUpdated", { ref: kase.ref }));
       onClose();
     },
-    onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update case"),
+    onError: (err) => toast.error(err instanceof Error ? err.message : t("toast.updateCaseFailed")),
   });
 
   if (!open) return null;
@@ -64,7 +66,7 @@ export function EditCaseDialog({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Edit case"
+      aria-label={t("dialog.editCase")}
     >
       <form
         onSubmit={submit}
@@ -72,11 +74,11 @@ export function EditCaseDialog({
         className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Edit case</h2>
+          <h2 className="text-base font-semibold">{t("dialog.editCase")}</h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("dialog.close")}
             className="text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />
@@ -85,7 +87,7 @@ export function EditCaseDialog({
         <p className="mt-1 font-mono text-xs text-muted-foreground">{kase.ref}</p>
         <div className="mt-4 space-y-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Company</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.company")}</label>
             <select required value={company} onChange={(e) => setCompany(e.target.value)} className={inputCls}>
               {COMPANIES.map((c) => (
                 <option key={c} value={c}>
@@ -95,28 +97,28 @@ export function EditCaseDialog({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Bank</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.bank")}</label>
             <select value={bankChoice} onChange={(e) => setBankChoice(e.target.value)} className={inputCls}>
               {IRAQI_BANKS.map((b) => (
                 <option key={b} value={b}>
                   {b}
                 </option>
               ))}
-              <option value={OTHER_BANK}>Other…</option>
+              <option value={OTHER_BANK}>{t("field.bankOther")}</option>
             </select>
             {bankChoice === OTHER_BANK && (
               <input
                 required
                 value={bankOther}
                 onChange={(e) => setBankOther(e.target.value)}
-                placeholder="Bank name"
+                placeholder={t("field.bankNamePlaceholder")}
                 className={`${inputCls} mt-2`}
               />
             )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Amount</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.amount")}</label>
               <input
                 required
                 type="number"
@@ -124,11 +126,11 @@ export function EditCaseDialog({
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className={`${inputCls} text-right font-mono`}
+                className={`${inputCls} text-end font-mono`}
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Currency</label>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.currency")}</label>
               <select value={currency} onChange={(e) => setCurrency(e.target.value)} className={`${inputCls} font-mono`}>
                 {CURRENCIES.map((c) => (
                   <option key={c} value={c}>
@@ -140,7 +142,7 @@ export function EditCaseDialog({
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              Notes <span className="font-normal">(optional)</span>
+              {t("field.notes")} <span className="font-normal">{t("field.optional")}</span>
             </label>
             <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} className={inputCls} />
           </div>
@@ -151,14 +153,14 @@ export function EditCaseDialog({
             onClick={onClose}
             className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-secondary"
           >
-            Cancel
+            {t("dialog.cancel")}
           </button>
           <button
             type="submit"
             disabled={mutation.isPending}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
           >
-            {mutation.isPending ? "Saving…" : "Save changes"}
+            {mutation.isPending ? t("dialog.saving") : t("dialog.save")}
           </button>
         </div>
       </form>

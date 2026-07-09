@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { listCases } from "@/lib/case-api";
 import { daysOpen, progressOf } from "@/lib/manifest";
+import { useI18n } from "@/lib/i18n";
 import { ProgressBar, StatCard } from "@/components/manifest-ui";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function DashboardPage() {
+  const { t } = useI18n();
   const { data: cases, isLoading } = useQuery({ queryKey: ["cases"], queryFn: listCases });
 
   const all = cases ?? [];
@@ -33,28 +35,26 @@ function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-semibold">Dashboard</h1>
-      <p className="mt-0.5 text-sm text-muted-foreground">Document status across all transfers.</p>
+      <h1 className="text-lg font-semibold">{t("dashboard.title")}</h1>
+      <p className="mt-0.5 text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="In progress" value={counts.in_progress} accentClass="border-l-status-progress" />
-        <StatCard label="Complete" value={counts.complete} accentClass="border-l-status-complete" />
-        <StatCard label="Sent to bank" value={counts.sent} accentClass="border-l-status-sent" />
-        <StatCard label="Total cases" value={counts.total} accentClass="border-l-foreground" />
+        <StatCard label={t("stat.inProgress")} value={counts.in_progress} accentClass="border-s-status-progress" />
+        <StatCard label={t("stat.complete")} value={counts.complete} accentClass="border-s-status-complete" />
+        <StatCard label={t("stat.sentToBank")} value={counts.sent} accentClass="border-s-status-sent" />
+        <StatCard label={t("stat.totalCases")} value={counts.total} accentClass="border-s-foreground" />
       </div>
 
       <section className="mt-8 rounded-lg border border-border bg-card">
         <div className="border-b border-border px-5 py-3">
-          <h2 className="text-sm font-semibold">Needs documents</h2>
-          <p className="text-xs text-muted-foreground">
-            In-progress cases, most complete first.
-          </p>
+          <h2 className="text-sm font-semibold">{t("needsDocs.title")}</h2>
+          <p className="text-xs text-muted-foreground">{t("needsDocs.subtitle")}</p>
         </div>
         {isLoading ? (
-          <div className="px-5 py-8 text-center text-sm text-muted-foreground">Loading…</div>
+          <div className="px-5 py-8 text-center text-sm text-muted-foreground">{t("common.loading")}</div>
         ) : needsDocs.length === 0 ? (
           <div className="px-5 py-8 text-center text-sm text-muted-foreground">
-            No open cases. Everything is either complete or submitted.
+            {t("needsDocs.empty")}
           </div>
         ) : (
           <ul className="divide-y divide-border">
@@ -68,8 +68,8 @@ function DashboardPage() {
                   <div className="flex min-w-0 flex-1 items-baseline gap-3">
                     <span className="shrink-0 font-mono text-sm font-medium">{c.ref}</span>
                     <span className="truncate text-sm">{c.company}</span>
-                    <span className="ml-auto shrink-0 font-mono text-xs text-muted-foreground sm:ml-0">
-                      {daysOpen(c.created_at)}d open
+                    <span className="ms-auto shrink-0 font-mono text-xs text-muted-foreground sm:ms-0">
+                      {t("dashboard.daysOpen", { n: daysOpen(c.created_at) })}
                     </span>
                   </div>
                   <div className="flex w-full items-center gap-3 sm:w-56">

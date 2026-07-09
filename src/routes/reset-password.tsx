@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/reset-password")({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const { t, toggle } = useI18n();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -25,26 +27,27 @@ function ResetPasswordPage() {
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.replace(/^#/, ""));
     if (params.get("type") !== "recovery") {
-      toast.error("This password reset link is invalid or expired.");
+      toast.error(t("toast.resetInvalid"));
       return;
     }
     setValid(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error(t("toast.pwMismatch"));
       return;
     }
     setBusy(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success("Password updated. Please sign in with your new password.");
+      toast.success(t("toast.pwUpdated"));
       navigate({ to: "/auth", replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update password");
+      toast.error(err instanceof Error ? err.message : t("toast.pwUpdateFailed"));
     } finally {
       setBusy(false);
     }
