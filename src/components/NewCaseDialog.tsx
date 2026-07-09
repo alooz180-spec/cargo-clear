@@ -5,16 +5,21 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createCase } from "@/lib/case-api";
-import { CURRENCIES } from "@/lib/manifest";
+import { CURRENCIES, COMPANIES, IRAQI_BANKS } from "@/lib/manifest";
+
+const OTHER_BANK = "__other__";
 
 export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [company, setCompany] = useState("");
-  const [bank, setBank] = useState("");
+  const [company, setCompany] = useState<string>(COMPANIES[0]);
+  const [bankChoice, setBankChoice] = useState<string>(IRAQI_BANKS[0]);
+  const [bankOther, setBankOther] = useState("");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<string>("USD");
   const [notes, setNotes] = useState("");
+
+  const bank = bankChoice === OTHER_BANK ? bankOther : bankChoice;
 
   const mutation = useMutation({
     mutationFn: () =>
