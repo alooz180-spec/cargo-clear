@@ -1,10 +1,11 @@
 import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, CopyPlus, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  addDocumentCopy,
   addExtraDocument,
   attachFile,
   deleteDocument,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/case-api";
 import {
   ACCEPTED_FILE_TYPES,
+  DEFAULT_DOC_TYPES,
   daysOpen,
   formatAmount,
   formatDate,
