@@ -1,13 +1,14 @@
 import { useRef, useState, type FormEvent } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CopyPlus, Paperclip, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, CopyPlus, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   addDocumentCopy,
   addExtraDocument,
   attachFile,
+  deleteCase,
   deleteDocument,
   getCase,
   openFile,
@@ -26,6 +27,8 @@ import {
   type DocRow,
 } from "@/lib/manifest";
 import { ProgressBar, StatusBadge, VerifiedStamp } from "@/components/manifest-ui";
+import { EditCaseDialog } from "@/components/EditCaseDialog";
+
 
 export const Route = createFileRoute("/_authenticated/cases/$caseId")({
   head: () => ({
@@ -39,11 +42,15 @@ export const Route = createFileRoute("/_authenticated/cases/$caseId")({
 
 function CaseDetailPage() {
   const { caseId } = Route.useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: kase, isLoading } = useQuery({
     queryKey: ["case", caseId],
     queryFn: () => getCase(caseId),
   });
+
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["case", caseId] });
@@ -55,6 +62,18 @@ function CaseDetailPage() {
     onSuccess: invalidate,
     onError: (e) => toast.error(e instanceof Error ? e.message : "Update failed"),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteCase(caseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+      queryClient.removeQueries({ queryKey: ["case", caseId] });
+      toast.success("Case deleted");
+      navigate({ to: "/cases" });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Delete failed"),
+  });
+
 
   if (isLoading) {
     return <div className="py-16 text-center text-sm text-muted-foreground">Loading case…</div>;
@@ -83,7 +102,24 @@ function CaseDetailPage() {
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-mono text-lg font-semibold">{kase.ref}</span>
           <StatusBadge status={status} />
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setEditing(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </button>
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete case
+            </button>
+          </div>
         </div>
+
         <div className="mt-1 text-base font-medium">{kase.company}</div>
         <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
           <div>
@@ -176,9 +212,52 @@ function CaseDetailPage() {
           </p>
         )}
       </div>
+
+      <EditCaseDialog open={editing} onClose={() => setEditing(false)} kase={kase} />
+
+      {confirmingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 px-4"
+          onClick={() => !deleteMutation.isPending && setConfirmingDelete(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Delete case"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg"
+          >
+            <h2 className="text-base font-semibold">Delete case</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              This will permanently remove case{" "}
+              <span className="font-mono text-foreground">{kase.ref}</span>, all of its documents,
+              and every attached file. This action cannot be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => setConfirmingDelete(false)}
+                className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate()}
+                className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
+              >
+                {deleteMutation.isPending ? "Deleting…" : "Delete case"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 function DocumentRow({
   doc,
