@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/reset-password")({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const { t, toggle } = useI18n();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -25,47 +27,56 @@ function ResetPasswordPage() {
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.replace(/^#/, ""));
     if (params.get("type") !== "recovery") {
-      toast.error("This password reset link is invalid or expired.");
+      toast.error(t("toast.resetInvalid"));
       return;
     }
     setValid(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error(t("toast.pwMismatch"));
       return;
     }
     setBusy(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast.success("Password updated. Please sign in with your new password.");
+      toast.success(t("toast.pwUpdated"));
       navigate({ to: "/auth", replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not update password");
+      toast.error(err instanceof Error ? err.message : t("toast.pwUpdateFailed"));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={t("lang.label")}
+        className="absolute top-4 end-4 rounded-md border border-input px-2.5 py-1 font-mono text-xs font-medium text-muted-foreground hover:bg-secondary"
+      >
+        {t("lang.toggle")}
+      </button>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="font-mono text-lg font-semibold tracking-[0.35em] text-foreground uppercase">
             Manifest
           </div>
           <div className="mt-1 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
-            TT document control
+            {t("app.tagline")}
           </div>
         </div>
         <form
           onSubmit={handleSubmit}
           className="rounded-lg border border-border bg-card p-6 shadow-sm"
         >
-          <h1 className="text-base font-semibold">Set new password</h1>
+          <h1 className="text-base font-semibold">{t("reset.title")}</h1>
           {valid ? (
             <>
               <div className="mt-4 space-y-3">
@@ -74,7 +85,7 @@ function ResetPasswordPage() {
                     htmlFor="password"
                     className="mb-1 block text-xs font-medium text-muted-foreground"
                   >
-                    New password
+                    {t("reset.newPassword")}
                   </label>
                   <input
                     id="password"
@@ -92,7 +103,7 @@ function ResetPasswordPage() {
                     htmlFor="confirmPassword"
                     className="mb-1 block text-xs font-medium text-muted-foreground"
                   >
-                    Confirm new password
+                    {t("reset.confirmPassword")}
                   </label>
                   <input
                     id="confirmPassword"
@@ -111,12 +122,12 @@ function ResetPasswordPage() {
                 disabled={busy}
                 className="mt-5 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
               >
-                {busy ? "Please wait…" : "Update password"}
+                {busy ? t("auth.pleaseWait") : t("reset.update")}
               </button>
             </>
           ) : (
             <p className="mt-4 text-sm text-muted-foreground">
-              The reset link appears to be invalid. Please request a new one from the sign-in page.
+              {t("reset.invalid")}
             </p>
           )}
         </form>

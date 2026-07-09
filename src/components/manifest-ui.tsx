@@ -1,5 +1,5 @@
 import type { CaseStatus } from "@/lib/manifest";
-import { STATUS_LABEL } from "@/lib/manifest";
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const badgeStyles: Record<CaseStatus, string> = {
@@ -9,6 +9,7 @@ const badgeStyles: Record<CaseStatus, string> = {
 };
 
 export function StatusBadge({ status }: { status: CaseStatus }) {
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -16,7 +17,7 @@ export function StatusBadge({ status }: { status: CaseStatus }) {
         badgeStyles[status],
       )}
     >
-      {STATUS_LABEL[status]}
+      {t(`status.${status}`)}
     </span>
   );
 }
@@ -42,7 +43,8 @@ export function ProgressBar({
 }
 
 export function VerifiedStamp() {
-  return <span className="stamp-seal">Verified</span>;
+  const { t } = useI18n();
+  return <span className="stamp-seal">{t("doc.verified")}</span>;
 }
 
 export function StatCard({
@@ -55,7 +57,7 @@ export function StatCard({
   accentClass: string;
 }) {
   return (
-    <div className={cn("rounded-lg border border-border bg-card border-l-4 px-4 py-3", accentClass)}>
+    <div className={cn("rounded-lg border border-border bg-card border-s-4 px-4 py-3", accentClass)}>
       <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {label}
       </div>
