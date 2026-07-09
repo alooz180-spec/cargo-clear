@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CopyPlus, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, CopyPlus, FileDown, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -28,6 +28,7 @@ import {
 } from "@/lib/manifest";
 import { ProgressBar, StatusBadge, VerifiedStamp } from "@/components/manifest-ui";
 import { EditCaseDialog } from "@/components/EditCaseDialog";
+import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { useI18n } from "@/lib/i18n";
 
 
@@ -47,6 +48,7 @@ function CaseDetailPage() {
   const queryClient = useQueryClient();
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: kase, isLoading } = useQuery({
     queryKey: ["case", caseId],
@@ -106,6 +108,13 @@ function CaseDetailPage() {
           <span className="font-mono text-lg font-semibold">{kase.ref}</span>
           <StatusBadge status={status} />
           <div className="ms-auto flex items-center gap-2">
+            <button
+              onClick={() => setExporting(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              {t("export.button")}
+            </button>
             <button
               onClick={() => setEditing(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
@@ -217,6 +226,13 @@ function CaseDetailPage() {
       </div>
 
       <EditCaseDialog open={editing} onClose={() => setEditing(false)} kase={kase} />
+
+      <ExportPdfDialog
+        open={exporting}
+        onClose={() => setExporting(false)}
+        kase={kase}
+        docs={docs}
+      />
 
       {confirmingDelete && (
         <div
