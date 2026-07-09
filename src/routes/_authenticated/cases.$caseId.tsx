@@ -211,6 +211,11 @@ function DocumentRow({
     run(() => attachFile(doc, caseId, file), "Upload failed");
   };
 
+  // A copy is an extra row that shares the name of a standard manifest document
+  // (e.g. a second البيان الكمركي / اذن خروج for another shipment or truck).
+  const isCopy =
+    doc.is_extra && (DEFAULT_DOC_TYPES as readonly string[]).includes(doc.doc_type);
+
   return (
     <li className="flex flex-col gap-2 px-5 py-3.5 sm:flex-row sm:items-center sm:gap-4">
       <span className="font-mono text-xs text-muted-foreground">
