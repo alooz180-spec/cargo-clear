@@ -15,6 +15,8 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
   const queryClient = useQueryClient();
   const { t } = useI18n();
   const [company, setCompany] = useState<string>(COMPANIES[0]);
+  const [supplier, setSupplier] = useState("");
+  const [vessel, setVessel] = useState("");
   const [bankChoice, setBankChoice] = useState<string>(IRAQI_BANKS[0]);
   const [bankOther, setBankOther] = useState("");
   const [amount, setAmount] = useState("");
@@ -27,6 +29,8 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
     mutationFn: () =>
       createCase({
         company: company.trim(),
+        supplier: supplier.trim() || null,
+        vessel: vessel.trim() || null,
         bank: bank.trim(),
         amount: parseFloat(amount) || 0,
         currency,
@@ -83,6 +87,18 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              {t("field.supplier")} <span className="font-normal">{t("field.optional")}</span>
+            </label>
+            <input value={supplier} onChange={(e) => setSupplier(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              {t("field.vessel")} <span className="font-normal">{t("field.optional")}</span>
+            </label>
+            <input value={vessel} onChange={(e) => setVessel(e.target.value)} className={inputCls} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.bank")}</label>

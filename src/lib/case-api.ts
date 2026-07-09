@@ -27,6 +27,8 @@ export async function getCase(id: string): Promise<CaseRow & { case_documents: D
 
 export async function createCase(input: {
   company: string;
+  supplier: string | null;
+  vessel: string | null;
   bank: string;
   amount: number;
   currency: string;
@@ -52,6 +54,8 @@ export async function updateCase(
   id: string,
   input: {
     company: string;
+    supplier: string | null;
+    vessel: string | null;
     bank: string;
     amount: number;
     currency: string;

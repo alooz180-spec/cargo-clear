@@ -1,0 +1,1 @@
+ALTER TABLE public.cases ADD COLUMN supplier text, ADD COLUMN vessel text;

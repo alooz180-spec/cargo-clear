@@ -23,6 +23,8 @@ export function EditCaseDialog({
   const [company, setCompany] = useState<string>(
     COMPANIES.includes(kase.company as (typeof COMPANIES)[number]) ? kase.company : COMPANIES[0],
   );
+  const [supplier, setSupplier] = useState(kase.supplier ?? "");
+  const [vessel, setVessel] = useState(kase.vessel ?? "");
   const knownBank = (IRAQI_BANKS as readonly string[]).includes(kase.bank);
   const [bankChoice, setBankChoice] = useState<string>(knownBank ? kase.bank : OTHER_BANK);
   const [bankOther, setBankOther] = useState(knownBank ? "" : kase.bank);
@@ -36,6 +38,8 @@ export function EditCaseDialog({
     mutationFn: () =>
       updateCase(kase.id, {
         company: company.trim(),
+        supplier: supplier.trim() || null,
+        vessel: vessel.trim() || null,
         bank: bank.trim(),
         amount: parseFloat(amount) || 0,
         currency,
@@ -95,6 +99,18 @@ export function EditCaseDialog({
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              {t("field.supplier")} <span className="font-normal">{t("field.optional")}</span>
+            </label>
+            <input value={supplier} onChange={(e) => setSupplier(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              {t("field.vessel")} <span className="font-normal">{t("field.optional")}</span>
+            </label>
+            <input value={vessel} onChange={(e) => setVessel(e.target.value)} className={inputCls} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.bank")}</label>

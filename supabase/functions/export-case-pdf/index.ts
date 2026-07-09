@@ -230,6 +230,12 @@ Deno.serve(async (req) => {
 
       const facts: [string, string][] = [
         ["Company", sanitize(String(kase.company ?? ""))],
+        ...(kase.supplier
+          ? ([["Supplier", sanitize(String(kase.supplier))]] as [string, string][])
+          : []),
+        ...(kase.vessel
+          ? ([["Vessel", sanitize(String(kase.vessel))]] as [string, string][])
+          : []),
         ["Bank", sanitize(bankLabel(String(kase.bank ?? "")))],
         [
           "Amount",
