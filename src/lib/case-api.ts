@@ -54,6 +54,8 @@ export async function updateCase(
   id: string,
   input: {
     company: string;
+    supplier: string | null;
+    vessel: string | null;
     bank: string;
     amount: number;
     currency: string;
