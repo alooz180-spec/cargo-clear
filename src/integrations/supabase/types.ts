@@ -69,7 +69,9 @@ export type Database = {
           notes: string | null
           ref: string
           status: string
+          supplier: string | null
           user_id: string
+          vessel: string | null
         }
         Insert: {
           amount?: number
@@ -81,7 +83,9 @@ export type Database = {
           notes?: string | null
           ref?: string
           status?: string
+          supplier?: string | null
           user_id?: string
+          vessel?: string | null
         }
         Update: {
           amount?: number
@@ -93,7 +97,9 @@ export type Database = {
           notes?: string | null
           ref?: string
           status?: string
+          supplier?: string | null
           user_id?: string
+          vessel?: string | null
         }
         Relationships: []
       }
