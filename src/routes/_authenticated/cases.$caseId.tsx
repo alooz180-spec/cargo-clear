@@ -109,6 +109,13 @@ function CaseDetailPage() {
           <StatusBadge status={status} />
           <div className="ms-auto flex items-center gap-2">
             <button
+              onClick={() => setExporting(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              {t("export.button")}
+            </button>
+            <button
               onClick={() => setEditing(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
             >
