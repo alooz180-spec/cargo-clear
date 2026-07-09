@@ -74,11 +74,33 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
         <div className="mt-4 space-y-3">
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Company</label>
-            <input required value={company} onChange={(e) => setCompany(e.target.value)} className={inputCls} />
+            <select required value={company} onChange={(e) => setCompany(e.target.value)} className={inputCls}>
+              {COMPANIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Bank</label>
-            <input required value={bank} onChange={(e) => setBank(e.target.value)} className={inputCls} />
+            <select value={bankChoice} onChange={(e) => setBankChoice(e.target.value)} className={inputCls}>
+              {IRAQI_BANKS.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+              <option value={OTHER_BANK}>Other…</option>
+            </select>
+            {bankChoice === OTHER_BANK && (
+              <input
+                required
+                value={bankOther}
+                onChange={(e) => setBankOther(e.target.value)}
+                placeholder="Bank name"
+                className={`${inputCls} mt-2`}
+              />
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
