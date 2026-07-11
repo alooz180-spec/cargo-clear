@@ -177,8 +177,9 @@ export function SplitPdfDialog({
           const copied = await out.copyPages(source, pageIdxs);
           copied.forEach((pg) => out.addPage(pg));
           const bytes = await out.save();
-          const label = docLabel(doc.doc_type).replace(/[\\/]/g, "-");
-          const file = new File([bytes as BlobPart], `${label}.pdf`, { type: "application/pdf" });
+          const file = new File([bytes as BlobPart], `${asciiSlug(doc.doc_type)}.pdf`, {
+            type: "application/pdf",
+          });
           await attachFile(doc, caseId, file);
           done += 1;
           setProgress({ done, total: plan.length });
