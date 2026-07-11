@@ -100,6 +100,10 @@
   --status-complete-bg: oklch(0.9461 0.0164 182.71); /* teal tint */
   --status-sent: oklch(0.5233 0.0413 257.42); /* #5b6b82 slate */
   --status-sent-bg: oklch(0.957 0.0063 255.48); /* #eef1f5 */
+
+  /* FK Nobel orange — drag-and-drop drop-zone accent */
+  --drop-accent: oklch(0.6873 0.1707 47.4); /* warm orange */
+  --drop-accent-bg: oklch(0.9612 0.0353 71.5); /* soft orange tint */
 }
 
 .dark {
