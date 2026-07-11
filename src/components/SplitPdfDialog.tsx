@@ -14,6 +14,23 @@ pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const IGNORE = "__ignore__";
 
+// Stable ASCII base names per doc_type. Non-ASCII (Arabic) filenames can break
+// inline viewing in some browsers, so split output files always get an ASCII name.
+const ASCII_SLUGS: Record<string, string> = {
+  "Swift (Bank Transfer)": "swift",
+  "البيان الكمركي المسبق": "advance-customs-declaration",
+  Invoice: "invoice",
+  "Packing List": "packing-list",
+  "Certificate of Origin": "certificate-of-origin",
+  "Shipping Documents": "shipping-documents",
+  "البيان الكمركي": "customs-declaration",
+  "Exit Permission": "exit-permission",
+};
+
+function asciiSlug(docType: string): string {
+  return ASCII_SLUGS[docType] ?? "document";
+}
+
 type PageThumb = { index: number; url: string };
 
 export function SplitPdfDialog({
