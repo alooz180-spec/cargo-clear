@@ -502,7 +502,9 @@ function DocumentRow({
         <button
           disabled={busy}
           onClick={() =>
-            run(() => addDocumentCopy(caseId, doc.doc_type, doc.sort_order), t("toast.addCopyFailed"))
+            run(async () => {
+              await addDocumentCopy(caseId, doc.doc_type, doc.sort_order);
+            }, t("toast.addCopyFailed"))
           }
           aria-label={t("doc.addCopyAria")}
           title={t("doc.addCopyTitle")}
