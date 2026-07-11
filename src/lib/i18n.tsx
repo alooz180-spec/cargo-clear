@@ -118,6 +118,8 @@ const en: Dict = {
   "case.markSent": "Mark sent to bank",
   "case.reopen": "Reopen",
   "case.submitted": "Submitted to {bank}. Case archived.",
+  "case.backToComplete": "Back to complete",
+
 
   // Export PDF
   "export.button": "Export PDF",
