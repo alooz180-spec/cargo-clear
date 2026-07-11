@@ -173,22 +173,22 @@ export async function deleteDocument(doc: Pick<DocRow, "id" | "file_path">) {
 }
 
 /**
- * Open an attached file for inline viewing in a new tab.
+ * Open an attached file for viewing.
  *
- * The signed URL is fetched FIRST; the tab is only opened once we actually have
- * a working URL (via a temporary anchor click), so we never leave a stranded
- * about:blank tab when signing fails.
+ * We resolve a working signed URL FIRST (with self-healing), then fetch the file
+ * as a blob and open a `blob:` object URL. Blob URLs carry no domain or filename
+ * for content blockers (ad blockers, antivirus like Kaspersky, sandboxed
+ * previews) to match against, so they survive ERR_BLOCKED_BY_CLIENT. If opening
+ * the blob is blocked, we fall back to a download; if the blob fetch itself
+ * fails, we fall back to the direct signed URL.
  *
  * Self-healing: if the stored file_path no longer matches an object in storage
  * (e.g. a diverged split upload), we list the document's folder, find the object
  * whose name starts with `${doc.id}-`, sign THAT path instead, and repair the
  * row's file_path so future opens are direct.
- *
- * The signed URL keeps its 1-hour expiry and is served inline (no forced
- * download), so PDFs and images render in the browser's viewer.
  */
 export async function openFile(
-  ref: { id: string; case_id: string; file_path: string | null },
+  ref: { id: string; case_id: string; file_path: string | null; file_name?: string | null },
   errorMessage?: string,
 ) {
   const path = ref.file_path;
@@ -197,27 +197,13 @@ export async function openFile(
     return;
   }
 
-  const openUrl = (url: string) => {
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-
   const sign = async (p: string) => supabase.storage.from("case-files").createSignedUrl(p, 3600);
 
-  try {
+  // Resolve a working signed URL, self-healing a diverged path if needed.
+  const resolveSignedUrl = async (): Promise<string | null> => {
     const { data, error } = await sign(path);
+    if (!error && data?.signedUrl) return data.signedUrl;
 
-    if (!error && data?.signedUrl) {
-      openUrl(data.signedUrl);
-      return;
-    }
-
-    // Signing failed — attempt to self-heal a mismatched path.
     console.error("openFile: failed to sign stored path", { path, error });
 
     const { data: userData } = await supabase.auth.getUser();
@@ -238,8 +224,7 @@ export async function openFile(
         docId: ref.id,
         available: files?.map((f) => f.name),
       });
-      toast.error("File not found in storage");
-      return;
+      return null;
     }
 
     const correctedPath = `${folder}/${match.name}`;
@@ -258,7 +243,50 @@ export async function openFile(
       console.error("openFile: failed to repair file_path", { correctedPath, updateError });
     }
 
-    openUrl(healed.signedUrl);
+    return healed.signedUrl;
+  };
+
+  const openViaAnchor = (url: string) => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  try {
+    const signedUrl = await resolveSignedUrl();
+    if (!signedUrl) {
+      toast.error(errorMessage ?? "File not found in storage");
+      return;
+    }
+
+    try {
+      // Fetch as a blob and open a blob: URL — not matchable by content blockers.
+      const res = await fetch(signedUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+
+      const win = window.open(objectUrl, "_blank", "noopener");
+      if (!win) {
+        // Opening was blocked — fall back to a download.
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = ref.file_name ?? "document";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      // Revoke after a delay so the new tab / download has time to read it.
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (blobErr) {
+      console.error("openFile: blob open failed, falling back to direct URL", { blobErr });
+      // Last resort: hand the signed URL directly to the browser.
+      openViaAnchor(signedUrl);
+    }
   } catch (err) {
     console.error("openFile: error opening file", { path, err });
     const message =
