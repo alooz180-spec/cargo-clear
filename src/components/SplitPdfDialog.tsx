@@ -70,7 +70,8 @@ export function SplitPdfDialog({
       const buf = await file.arrayBuffer();
       // Keep a pristine copy for pdf-lib (pdf.js may detach/transfer the buffer).
       bytesRef.current = buf.slice(0);
-      const doc = await pdfjs.getDocument({ data: new Uint8Array(buf) }).promise;
+      const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buf) });
+      const doc = await loadingTask.promise;
       const thumbs: PageThumb[] = [];
       const nextAssign: Record<number, string> = {};
       for (let i = 1; i <= doc.numPages; i++) {
