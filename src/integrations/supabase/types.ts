@@ -62,9 +62,11 @@ export type Database = {
         Row: {
           amount: number
           bank: string
+          bl_number: string | null
           company: string
           created_at: string
           currency: string
+          eta: string | null
           id: string
           notes: string | null
           ref: string
@@ -76,9 +78,11 @@ export type Database = {
         Insert: {
           amount?: number
           bank: string
+          bl_number?: string | null
           company: string
           created_at?: string
           currency?: string
+          eta?: string | null
           id?: string
           notes?: string | null
           ref?: string
@@ -90,9 +94,11 @@ export type Database = {
         Update: {
           amount?: number
           bank?: string
+          bl_number?: string | null
           company?: string
           created_at?: string
           currency?: string
+          eta?: string | null
           id?: string
           notes?: string | null
           ref?: string
