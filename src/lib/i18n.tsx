@@ -65,7 +65,7 @@ const en: Dict = {
   "cases.title": "Cases",
   "cases.subtitle": "One case per telegraphic transfer.",
   "cases.new": "New case",
-  "cases.searchPlaceholder": "Search company, bank, reference, amount…",
+  "cases.searchPlaceholder": "Search company, supplier, vessel, bank, reference, amount…",
   "filter.all": "All",
   "filter.in_progress": "In progress",
   "filter.complete": "Complete",
