@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CopyPlus, FileDown, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, CopyPlus, FileDown, Paperclip, Pencil, Plus, Scissors, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -30,6 +30,7 @@ import {
 import { ProgressBar, StatusBadge, VerifiedStamp } from "@/components/manifest-ui";
 import { EditCaseDialog } from "@/components/EditCaseDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
+import { SplitPdfDialog } from "@/components/SplitPdfDialog";
 import { useI18n } from "@/lib/i18n";
 
 
@@ -50,6 +51,7 @@ function CaseDetailPage() {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [splitting, setSplitting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: kase, isLoading } = useQuery({
     queryKey: ["case", caseId],
@@ -115,6 +117,13 @@ function CaseDetailPage() {
             >
               <FileDown className="h-3.5 w-3.5" />
               {t("export.button")}
+            </button>
+            <button
+              onClick={() => setSplitting(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+            >
+              <Scissors className="h-3.5 w-3.5" />
+              {t("split.button")}
             </button>
             <button
               onClick={() => setEditing(true)}
@@ -267,6 +276,15 @@ function CaseDetailPage() {
         kase={kase}
         docs={docs}
       />
+
+      <SplitPdfDialog
+        open={splitting}
+        onClose={() => setSplitting(false)}
+        caseId={caseId}
+        docs={docs}
+        onChanged={invalidate}
+      />
+
 
       {confirmingDelete && (
         <div
