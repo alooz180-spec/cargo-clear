@@ -328,6 +328,8 @@ const ar: Dict = {
   "field.company": "الشركة",
   "field.supplier": "المورّد",
   "field.vessel": "الباخرة",
+  "field.blNumber": "رقم بوليصة الشحن",
+  "field.eta": "الوصول المتوقع",
   "field.bank": "المصرف",
   "field.amount": "المبلغ",
   "field.currency": "العملة",
