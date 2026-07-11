@@ -25,7 +25,9 @@ export const IRAQI_BANKS = [
   "بغداد",
 ] as const;
 
-export const ACCEPTED_FILE_TYPES = ".pdf,.png,.jpg,.jpeg,.tif";
+export const ACCEPTED_FILE_TYPES = ".pdf,.png,.jpg,.jpeg,.tif,.tiff";
+// File extensions accepted for drag-and-drop and click-to-attach uploads.
+export const ACCEPTED_FILE_EXTENSIONS = ["pdf", "png", "jpg", "jpeg", "tif", "tiff"] as const;
 
 export const DEFAULT_DOC_TYPES = [
   "Swift (Bank Transfer)",
