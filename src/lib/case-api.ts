@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { CaseRow, CaseStatus, CaseWithProgress, DocRow } from "./manifest";
 
@@ -153,8 +154,48 @@ export async function deleteDocument(doc: Pick<DocRow, "id" | "file_path">) {
   if (error) throw error;
 }
 
-export async function openFile(path: string) {
-  const { data, error } = await supabase.storage.from("case-files").createSignedUrl(path, 3600);
-  if (error) throw error;
-  window.open(data.signedUrl, "_blank", "noopener");
+/**
+ * Open an attached file for inline viewing in a new tab.
+ *
+ * The tab is opened *synchronously* inside the click gesture BEFORE the async
+ * signed-URL request, otherwise Safari/Chrome (desktop and mobile) block the
+ * pop-up because window.open would run after an await. We keep the window
+ * reference, so we must NOT pass "noopener" here (that would make window.open
+ * return null); instead we null out `opener` after navigating for safety.
+ *
+ * The signed URL keeps its 1-hour expiry and is served inline (no forced
+ * download), so PDFs and images render in the browser's viewer.
+ */
+export async function openFile(path: string, errorMessage?: string) {
+  const w = window.open("about:blank", "_blank");
+
+  try {
+    const { data, error } = await supabase.storage
+      .from("case-files")
+      .createSignedUrl(path, 3600);
+    if (error) throw error;
+    const url = data.signedUrl;
+
+    if (w) {
+      try {
+        w.opener = null;
+      } catch {
+        /* cross-origin opener assignment can throw; ignore */
+      }
+      w.location.href = url;
+    } else {
+      // Pop-up was blocked — fall back to a temporary anchor click.
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  } catch (err) {
+    if (w) w.close();
+    toast.error(errorMessage ?? "Could not open file");
+    throw err;
+  }
 }
