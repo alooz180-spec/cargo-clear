@@ -116,6 +116,20 @@ export function EditCaseDialog({
             </label>
             <input value={vessel} onChange={(e) => setVessel(e.target.value)} className={inputCls} />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                {t("field.blNumber")} <span className="font-normal">{t("field.optional")}</span>
+              </label>
+              <input value={blNumber} onChange={(e) => setBlNumber(e.target.value)} className={`${inputCls} font-mono`} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                {t("field.eta")} <span className="font-normal">{t("field.optional")}</span>
+              </label>
+              <input type="date" value={eta} onChange={(e) => setEta(e.target.value)} className={`${inputCls} font-mono`} />
+            </div>
+          </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.bank")}</label>
             <select value={bankChoice} onChange={(e) => setBankChoice(e.target.value)} className={inputCls}>
