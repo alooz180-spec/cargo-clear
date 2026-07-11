@@ -98,7 +98,12 @@ export async function setDocVerified(docId: string, verified: boolean) {
   if (error) throw error;
 }
 
-export async function attachFile(doc: Pick<DocRow, "id">, caseId: string, file: File) {
+export async function attachFile(
+  doc: Pick<DocRow, "id">,
+  caseId: string,
+  file: File,
+  displayName?: string,
+) {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error("Not signed in");
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -111,9 +116,11 @@ export async function attachFile(doc: Pick<DocRow, "id">, caseId: string, file: 
       contentType: file.type || "application/octet-stream",
     });
   if (uploadError) throw uploadError;
+  // The stored object name (in `path`) stays neutral so content blockers can't
+  // match on it; `file_name` keeps the human-readable label for display only.
   const { error } = await supabase
     .from("case_documents")
-    .update({ file_name: file.name, file_path: path })
+    .update({ file_name: displayName ?? file.name, file_path: path })
     .eq("id", doc.id);
   if (error) throw error;
 }
