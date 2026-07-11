@@ -441,7 +441,7 @@ function DocumentRow({
               {doc.file_name}
               {doc.file_path && (
                 <button
-                  onClick={() => doc.file_path && openFile(doc.file_path, t("toast.openFailed"))}
+                  onClick={() => doc.file_path && openFile(doc, t("toast.openFailed"))}
                   className="ms-2 text-primary underline underline-offset-2 hover:text-primary-deep"
                 >
                   {t("doc.view")}
