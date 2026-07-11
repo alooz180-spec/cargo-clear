@@ -52,6 +52,9 @@
   --color-status-complete-bg: var(--status-complete-bg);
   --color-status-sent: var(--status-sent);
   --color-status-sent-bg: var(--status-sent-bg);
+
+  --color-drop-accent: var(--drop-accent);
+  --color-drop-accent-bg: var(--drop-accent-bg);
 }
 
 :root {
