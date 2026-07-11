@@ -82,7 +82,7 @@ export function SplitPdfDialog({
         canvas.height = Math.ceil(viewport.height);
         const ctx = canvas.getContext("2d");
         if (!ctx) continue;
-        await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+        await page.render({ canvasContext: ctx, viewport }).promise;
         thumbs.push({ index: i - 1, url: canvas.toDataURL("image/jpeg", 0.7) });
         nextAssign[i - 1] = IGNORE;
         page.cleanup();
