@@ -33,6 +33,8 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
         company: company.trim(),
         supplier: supplier.trim() || null,
         vessel: vessel.trim() || null,
+        bl_number: blNumber.trim() || null,
+        eta: eta || null,
         bank: bank.trim(),
         amount: parseFloat(amount) || 0,
         currency,
