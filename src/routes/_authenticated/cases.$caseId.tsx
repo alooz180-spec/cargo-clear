@@ -244,9 +244,18 @@ function CaseDetailPage() {
           </div>
         )}
         {status === "sent" && (
-          <p className="font-mono text-sm text-status-sent">
-            {t("case.submitted", { bank: kase.bank })}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="font-mono text-sm text-status-sent">
+              {t("case.submitted", { bank: kase.bank })}
+            </p>
+            <button
+              disabled={statusMutation.isPending}
+              onClick={() => statusMutation.mutate("complete")}
+              className="ms-auto rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-60"
+            >
+              {t("case.backToComplete")}
+            </button>
+          </div>
         )}
       </div>
 
