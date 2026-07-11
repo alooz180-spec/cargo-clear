@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CopyPlus, FileDown, Paperclip, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, CopyPlus, FileDown, Paperclip, Pencil, Plus, Scissors, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
