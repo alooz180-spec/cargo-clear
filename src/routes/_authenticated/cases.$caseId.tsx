@@ -119,6 +119,13 @@ function CaseDetailPage() {
               {t("export.button")}
             </button>
             <button
+              onClick={() => setSplitting(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
+            >
+              <Scissors className="h-3.5 w-3.5" />
+              {t("split.button")}
+            </button>
+            <button
               onClick={() => setEditing(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary"
             >
