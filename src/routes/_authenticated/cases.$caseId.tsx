@@ -441,12 +441,20 @@ function DocumentRow({
             <span className="text-foreground">
               {doc.file_name}
               {doc.file_path && (
-                <button
-                  onClick={() => doc.file_path && openFile(doc, t("toast.openFailed"))}
-                  className="ms-2 text-primary underline underline-offset-2 hover:text-primary-deep"
-                >
-                  {t("doc.view")}
-                </button>
+                <>
+                  <button
+                    onClick={() => doc.file_path && openFile(doc, t("toast.openFailed"))}
+                    className="ms-2 text-primary underline underline-offset-2 hover:text-primary-deep"
+                  >
+                    {t("doc.view")}
+                  </button>
+                  <button
+                    onClick={() => doc.file_path && downloadFile(doc, t("toast.downloadFailed"))}
+                    className="ms-2 text-primary underline underline-offset-2 hover:text-primary-deep"
+                  >
+                    {t("doc.download")}
+                  </button>
+                </>
               )}
             </span>
           ) : (
