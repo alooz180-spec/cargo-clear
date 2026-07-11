@@ -31,13 +31,13 @@ export const ACCEPTED_FILE_EXTENSIONS = ["pdf", "png", "jpg", "jpeg", "tif", "ti
 
 export const DEFAULT_DOC_TYPES = [
   "Swift (Bank Transfer)",
+  "البيان الكمركي المسبق",
   "Invoice",
   "Packing List",
   "Certificate of Origin",
   "Shipping Documents",
   "البيان الكمركي",
   "Exit Permission",
-  "البيان الكمركي المسبق",
 ] as const;
 
 export const STATUS_LABEL: Record<CaseStatus, string> = {
