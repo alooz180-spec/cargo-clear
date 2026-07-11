@@ -30,6 +30,7 @@ import {
 import { ProgressBar, StatusBadge, VerifiedStamp } from "@/components/manifest-ui";
 import { EditCaseDialog } from "@/components/EditCaseDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
+import { SplitPdfDialog } from "@/components/SplitPdfDialog";
 import { useI18n } from "@/lib/i18n";
 
 
