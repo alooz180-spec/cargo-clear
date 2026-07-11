@@ -51,6 +51,7 @@ function CaseDetailPage() {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [splitting, setSplitting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const { data: kase, isLoading } = useQuery({
     queryKey: ["case", caseId],
