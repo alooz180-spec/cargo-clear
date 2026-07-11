@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X, FileText, UploadCloud } from "lucide-react";
+import { X, FileText, UploadCloud, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import * as pdfjs from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { PDFDocument } from "pdf-lib";
 
-import { attachFile } from "@/lib/case-api";
-import type { DocRow } from "@/lib/manifest";
+import { attachFile, addDocumentCopy } from "@/lib/case-api";
+import { DEFAULT_DOC_TYPES, type DocRow } from "@/lib/manifest";
 import { useI18n } from "@/lib/i18n";
 
 // Configure the pdf.js worker to match the installed pdfjs-dist version.
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const IGNORE = "__ignore__";
+// Prefix used in the dropdown for the inline "＋ New copy of {doc}" quick action.
+const ADD_COPY = "__addcopy__:";
+// Prefix used for values that point at a user-created "new copy" target.
+const COPY = "__copy__:";
 
 // Stable ASCII base names per doc_type. Non-ASCII (Arabic) filenames can break
 // inline viewing in some browsers, so split output files always get an ASCII name.
@@ -32,6 +36,17 @@ function asciiSlug(docType: string): string {
 }
 
 type PageThumb = { index: number; url: string };
+// A user-created "new copy" target: an extra document that will be created on
+// confirm (is_extra = true, same doc_type as the standard document).
+type NewCopy = { key: string; docType: string };
+
+// The concrete operations a confirmed split performs.
+type SplitOp =
+  | { kind: "existing"; label: string; doc: DocRow; pageIdxs: number[] }
+  | { kind: "new"; label: string; docType: string; sortOrder: number; pageIdxs: number[] };
+
+let copyCounter = 0;
+const nextCopyKey = () => `c${Date.now().toString(36)}${(copyCounter++).toString(36)}`;
 
 export function SplitPdfDialog({
   open,
@@ -54,10 +69,14 @@ export function SplitPdfDialog({
   const [loading, setLoading] = useState(false);
   const [pages, setPages] = useState<PageThumb[]>([]);
   const [assign, setAssign] = useState<Record<number, string>>({});
+  const [newCopies, setNewCopies] = useState<NewCopy[]>([]);
+  const [addCopyPick, setAddCopyPick] = useState<string>("");
   const [dragOver, setDragOver] = useState(false);
   const [creating, setCreating] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [pendingReplace, setPendingReplace] = useState<string[] | null>(null);
+  // Per-slot conflict resolution for existing slots that already hold a file.
+  const [conflicts, setConflicts] = useState<DocRow[] | null>(null);
+  const [decisions, setDecisions] = useState<Record<string, "replace" | "copy">>({});
 
   const reset = useCallback(() => {
     bytesRef.current = null;
@@ -65,56 +84,62 @@ export function SplitPdfDialog({
     setLoading(false);
     setPages([]);
     setAssign({});
+    setNewCopies([]);
+    setAddCopyPick("");
     setDragOver(false);
     setCreating(false);
     setProgress(null);
-    setPendingReplace(null);
+    setConflicts(null);
+    setDecisions({});
   }, []);
 
   useEffect(() => {
     if (!open) reset();
   }, [open, reset]);
 
-  const loadPdf = useCallback(async (file: File) => {
-    if (file.type !== "application/pdf") {
-      toast.error(t("split.onlyPdf"));
-      return;
-    }
-    reset();
-    setFileName(file.name);
-    setLoading(true);
-    try {
-      const buf = await file.arrayBuffer();
-      // Keep a pristine copy for pdf-lib (pdf.js may detach/transfer the buffer).
-      bytesRef.current = buf.slice(0);
-      const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buf) });
-      const doc = await loadingTask.promise;
-      const thumbs: PageThumb[] = [];
-      const nextAssign: Record<number, string> = {};
-      for (let i = 1; i <= doc.numPages; i++) {
-        const page = await doc.getPage(i);
-        const viewport = page.getViewport({ scale: 0.5 });
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.ceil(viewport.width);
-        canvas.height = Math.ceil(viewport.height);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) continue;
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        thumbs.push({ index: i - 1, url: canvas.toDataURL("image/jpeg", 0.7) });
-        nextAssign[i - 1] = IGNORE;
-        page.cleanup();
+  const loadPdf = useCallback(
+    async (file: File) => {
+      if (file.type !== "application/pdf") {
+        toast.error(t("split.onlyPdf"));
+        return;
       }
-      setPages(thumbs);
-      setAssign(nextAssign);
-      loadingTask.destroy();
-    } catch (e) {
-      console.error(e);
-      toast.error(t("split.loadFailed"));
       reset();
-    } finally {
-      setLoading(false);
-    }
-  }, [reset, t]);
+      setFileName(file.name);
+      setLoading(true);
+      try {
+        const buf = await file.arrayBuffer();
+        // Keep a pristine copy for pdf-lib (pdf.js may detach/transfer the buffer).
+        bytesRef.current = buf.slice(0);
+        const loadingTask = pdfjs.getDocument({ data: new Uint8Array(buf) });
+        const doc = await loadingTask.promise;
+        const thumbs: PageThumb[] = [];
+        const nextAssign: Record<number, string> = {};
+        for (let i = 1; i <= doc.numPages; i++) {
+          const page = await doc.getPage(i);
+          const viewport = page.getViewport({ scale: 0.5 });
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.ceil(viewport.width);
+          canvas.height = Math.ceil(viewport.height);
+          const ctx = canvas.getContext("2d");
+          if (!ctx) continue;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          thumbs.push({ index: i - 1, url: canvas.toDataURL("image/jpeg", 0.7) });
+          nextAssign[i - 1] = IGNORE;
+          page.cleanup();
+        }
+        setPages(thumbs);
+        setAssign(nextAssign);
+        loadingTask.destroy();
+      } catch (e) {
+        console.error(e);
+        toast.error(t("split.loadFailed"));
+        reset();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [reset, t],
+  );
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -122,24 +147,91 @@ export function SplitPdfDialog({
     loadPdf(files[0]);
   };
 
-  // Group assigned pages by target document, in manifest (docs) order.
+  // Sort order for a new copy: reuse the standard document's manifest position.
+  const sortOrderFor = useCallback(
+    (docType: string): number => {
+      const match = docs.find((d) => d.doc_type === docType);
+      if (match) return match.sort_order;
+      const idx = DEFAULT_DOC_TYPES.indexOf(docType as (typeof DEFAULT_DOC_TYPES)[number]);
+      return idx >= 0 ? idx + 1 : docs.length + 1;
+    },
+    [docs],
+  );
+
+  // Ordinal label for a new-copy target, e.g. "Exit Permission — new copy 2".
+  const copyLabel = useCallback(
+    (copy: NewCopy): string => {
+      const ordinal =
+        newCopies.filter((c) => c.docType === copy.docType).findIndex((c) => c.key === copy.key) + 1;
+      return t("split.copyLabel", { doc: docLabel(copy.docType), n: ordinal });
+    },
+    [newCopies, docLabel, t],
+  );
+
+  const addCopyTarget = (docType: string) => {
+    if (!docType) return;
+    setNewCopies((prev) => [...prev, { key: nextCopyKey(), docType }]);
+    setAddCopyPick("");
+  };
+
+  const removeCopyTarget = (key: string) => {
+    setNewCopies((prev) => prev.filter((c) => c.key !== key));
+    // Un-assign any pages that pointed at the removed target.
+    setAssign((prev) => {
+      const next = { ...prev };
+      for (const k of Object.keys(next)) {
+        if (next[Number(k)] === `${COPY}${key}`) next[Number(k)] = IGNORE;
+      }
+      return next;
+    });
+  };
+
+  const onAssignChange = (pageIdx: number, value: string) => {
+    if (value.startsWith(ADD_COPY)) {
+      // Inline quick action: create a new copy target and point this page at it.
+      const docType = value.slice(ADD_COPY.length);
+      const key = nextCopyKey();
+      setNewCopies((prev) => [...prev, { key, docType }]);
+      setAssign((prev) => ({ ...prev, [pageIdx]: `${COPY}${key}` }));
+      return;
+    }
+    setAssign((prev) => ({ ...prev, [pageIdx]: value }));
+  };
+
+  // Group assigned pages by target: existing docs (manifest order) then new copies.
   const plan = useMemo(() => {
-    return docs
-      .map((doc) => {
-        const pageIdxs = pages
+    const existing = docs
+      .map((doc) => ({
+        kind: "existing" as const,
+        doc,
+        pageIdxs: pages
           .map((p) => p.index)
           .filter((idx) => assign[idx] === doc.id)
-          .sort((a, b) => a - b);
-        return { doc, pageIdxs };
-      })
+          .sort((a, b) => a - b),
+      }))
       .filter((g) => g.pageIdxs.length > 0);
-  }, [docs, pages, assign]);
+    const copies = newCopies
+      .map((copy) => ({
+        kind: "new" as const,
+        copy,
+        pageIdxs: pages
+          .map((p) => p.index)
+          .filter((idx) => assign[idx] === `${COPY}${copy.key}`)
+          .sort((a, b) => a - b),
+      }))
+      .filter((g) => g.pageIdxs.length > 0);
+    return { existing, copies };
+  }, [docs, newCopies, pages, assign]);
 
-  const ignoredCount = pages.filter((p) => (assign[p.index] ?? IGNORE) === IGNORE).length;
-  const canCreate = plan.length > 0 && !creating;
+  const ignoredCount = pages.filter((p) => {
+    const v = assign[p.index] ?? IGNORE;
+    return v === IGNORE;
+  }).length;
+
+  const planCount = plan.existing.length + plan.copies.length;
+  const canCreate = planCount > 0 && !creating;
 
   const formatRange = (idxs: number[]): string => {
-    // Human page numbers are 1-based; build compact ranges e.g. "1–2, 4".
     const nums = idxs.map((i) => i + 1);
     const parts: string[] = [];
     let start = nums[0];
@@ -163,29 +255,70 @@ export function SplitPdfDialog({
       ? t("split.pageSingle", { n: idxs[0] + 1 })
       : t("split.pagesRange", { range: formatRange(idxs) });
 
-  const runCreate = async () => {
+  // Turn the plan (+ any per-slot decisions) into concrete operations.
+  const buildOps = (decisionMap: Record<string, "replace" | "copy">): SplitOp[] => {
+    const ops: SplitOp[] = [];
+    for (const g of plan.existing) {
+      const hasFile = !!g.doc.file_name;
+      const decision = decisionMap[g.doc.id];
+      if (hasFile && decision === "copy") {
+        ops.push({
+          kind: "new",
+          label: docLabel(g.doc.doc_type),
+          docType: g.doc.doc_type,
+          sortOrder: g.doc.sort_order,
+          pageIdxs: g.pageIdxs,
+        });
+      } else {
+        // Empty slot, or an occupied slot the user chose to replace.
+        ops.push({ kind: "existing", label: docLabel(g.doc.doc_type), doc: g.doc, pageIdxs: g.pageIdxs });
+      }
+    }
+    for (const g of plan.copies) {
+      ops.push({
+        kind: "new",
+        label: copyLabel(g.copy),
+        docType: g.copy.docType,
+        sortOrder: sortOrderFor(g.copy.docType),
+        pageIdxs: g.pageIdxs,
+      });
+    }
+    return ops;
+  };
+
+  const runCreate = async (decisionMap: Record<string, "replace" | "copy">) => {
     if (!bytesRef.current) return;
+    const ops = buildOps(decisionMap);
+    if (ops.length === 0) return;
     setCreating(true);
-    setProgress({ done: 0, total: plan.length });
+    setProgress({ done: 0, total: ops.length });
     const failed: string[] = [];
     let done = 0;
     try {
       const source = await PDFDocument.load(bytesRef.current);
-      for (const { doc, pageIdxs } of plan) {
+      for (const op of ops) {
         try {
           const out = await PDFDocument.create();
-          const copied = await out.copyPages(source, pageIdxs);
+          const copied = await out.copyPages(source, op.pageIdxs);
           copied.forEach((pg) => out.addPage(pg));
           const bytes = await out.save();
-          const file = new File([bytes as BlobPart], `${asciiSlug(doc.doc_type)}.pdf`, {
+          const docType = op.kind === "existing" ? op.doc.doc_type : op.docType;
+          const file = new File([bytes as BlobPart], `${asciiSlug(docType)}.pdf`, {
             type: "application/pdf",
           });
-          await attachFile(doc, caseId, file);
+          if (op.kind === "new") {
+            // Create the new copy row first, then attach into it. Never touches
+            // existing documents.
+            const created = await addDocumentCopy(caseId, op.docType, op.sortOrder);
+            await attachFile(created, caseId, file);
+          } else {
+            await attachFile(op.doc, caseId, file);
+          }
           done += 1;
-          setProgress({ done, total: plan.length });
+          setProgress({ done, total: ops.length });
         } catch (e) {
           console.error(e);
-          failed.push(docLabel(doc.doc_type));
+          failed.push(op.label);
         }
       }
       onChanged();
@@ -196,7 +329,6 @@ export function SplitPdfDialog({
         toast.warning(
           t("split.partial", { done, failed: failed.length, slots: failed.join(", ") }),
         );
-        onChanged();
       } else {
         toast.error(t("split.failed"));
       }
@@ -206,18 +338,21 @@ export function SplitPdfDialog({
     } finally {
       setCreating(false);
       setProgress(null);
-      setPendingReplace(null);
+      setConflicts(null);
     }
   };
 
   const handleCreateClick = () => {
-    // Warn (per plan) if any targeted slot already has a file.
-    const occupied = plan.filter((g) => g.doc.file_name).map((g) => docLabel(g.doc.doc_type));
+    // Existing slots that already hold a file need a per-slot decision.
+    const occupied = plan.existing.filter((g) => g.doc.file_name).map((g) => g.doc);
     if (occupied.length > 0) {
-      setPendingReplace(occupied);
+      // Default every conflicted slot to "add as a new copy" — the safe,
+      // non-destructive choice.
+      setDecisions(Object.fromEntries(occupied.map((d) => [d.id, "copy" as const])));
+      setConflicts(occupied);
       return;
     }
-    runCreate();
+    runCreate({});
   };
 
   if (!open) return null;
@@ -316,6 +451,57 @@ export function SplitPdfDialog({
                 </button>
               </div>
 
+              {/* Add another copy target */}
+              <div className="mb-4 rounded-md border border-dashed border-border bg-secondary/40 px-3 py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={addCopyPick}
+                    disabled={creating}
+                    onChange={(e) => setAddCopyPick(e.target.value)}
+                    aria-label={t("split.addCopyTargetAria")}
+                    className={`${selectCls} max-w-xs`}
+                  >
+                    <option value="">{t("split.addCopyTarget")}</option>
+                    {DEFAULT_DOC_TYPES.map((dt) => (
+                      <option key={dt} value={dt}>
+                        {docLabel(dt)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={creating || !addCopyPick}
+                    onClick={() => addCopyTarget(addCopyPick)}
+                    className="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-secondary disabled:opacity-50"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    {t("split.addCopyTarget")}
+                  </button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">{t("split.addCopyTargetHint")}</p>
+                {newCopies.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {newCopies.map((copy) => (
+                      <span
+                        key={copy.key}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px]"
+                      >
+                        {copyLabel(copy)}
+                        <button
+                          type="button"
+                          disabled={creating}
+                          onClick={() => removeCopyTarget(copy.key)}
+                          aria-label={t("split.removeCopyTarget")}
+                          className="text-muted-foreground hover:text-destructive disabled:opacity-60"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                 {pages.map((pg) => (
                   <div key={pg.index} className="flex flex-col gap-1.5">
@@ -332,19 +518,35 @@ export function SplitPdfDialog({
                     <select
                       value={assign[pg.index] ?? IGNORE}
                       disabled={creating}
-                      onChange={(e) =>
-                        setAssign((prev) => ({ ...prev, [pg.index]: e.target.value }))
-                      }
+                      onChange={(e) => onAssignChange(pg.index, e.target.value)}
                       className={selectCls}
                       aria-label={t("split.assignTo")}
                     >
                       <option value={IGNORE}>{t("split.ignore")}</option>
-                      {docs.map((doc, i) => (
-                        <option key={doc.id} value={doc.id}>
-                          {String(i + 1).padStart(2, "0")}. {docLabel(doc.doc_type)}
-                          {doc.file_name ? " •" : ""}
-                        </option>
-                      ))}
+                      <optgroup label={t("split.currentDocs")}>
+                        {docs.map((doc, i) => (
+                          <option key={doc.id} value={doc.id}>
+                            {String(i + 1).padStart(2, "0")}. {docLabel(doc.doc_type)}
+                            {doc.file_name ? " •" : ""}
+                          </option>
+                        ))}
+                      </optgroup>
+                      {newCopies.length > 0 && (
+                        <optgroup label={t("split.newCopiesGroup")}>
+                          {newCopies.map((copy) => (
+                            <option key={copy.key} value={`${COPY}${copy.key}`}>
+                              {copyLabel(copy)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label={t("split.addCopyGroup")}>
+                        {DEFAULT_DOC_TYPES.map((dt) => (
+                          <option key={`add-${dt}`} value={`${ADD_COPY}${dt}`}>
+                            {t("split.newCopyOf", { doc: docLabel(dt) })}
+                          </option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                 ))}
@@ -357,14 +559,23 @@ export function SplitPdfDialog({
           <div className="border-t border-border px-5 py-4">
             <div className="mb-3 rounded-md bg-secondary/60 px-3 py-2 text-xs">
               <span className="font-medium text-muted-foreground">{t("split.planTitle")}: </span>
-              {plan.length === 0 ? (
+              {planCount === 0 ? (
                 <span className="text-muted-foreground">{t("split.nothingAssigned")}</span>
               ) : (
                 <span>
-                  {plan.map((g, i) => (
+                  {plan.existing.map((g, i) => (
                     <span key={g.doc.id}>
                       {i > 0 && <span className="text-muted-foreground"> · </span>}
                       <span className="font-medium">{docLabel(g.doc.doc_type)}</span>
+                      <span className="text-muted-foreground"> ← {planLabel(g.pageIdxs)}</span>
+                    </span>
+                  ))}
+                  {plan.copies.map((g, i) => (
+                    <span key={g.copy.key}>
+                      {(plan.existing.length > 0 || i > 0) && (
+                        <span className="text-muted-foreground"> · </span>
+                      )}
+                      <span className="font-medium">{copyLabel(g.copy)}</span>
                       <span className="text-muted-foreground"> ← {planLabel(g.pageIdxs)}</span>
                     </span>
                   ))}
@@ -406,30 +617,54 @@ export function SplitPdfDialog({
         )}
       </div>
 
-      {pendingReplace && (
+      {conflicts && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-foreground/40 px-4"
-          onClick={() => !creating && setPendingReplace(null)}
+          onClick={() => !creating && setConflicts(null)}
           role="dialog"
           aria-modal="true"
-          aria-label={t("split.replaceTitle")}
+          aria-label={t("split.conflictTitle")}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg"
           >
-            <h2 className="text-base font-semibold">{t("split.replaceTitle")}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("split.replaceBody", {
-                n: pendingReplace.length,
-                slots: pendingReplace.join(", "),
-              })}
-            </p>
+            <h2 className="text-base font-semibold">{t("split.conflictTitle")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("split.conflictBody")}</p>
+            <div className="mt-4 space-y-3">
+              {conflicts.map((doc) => (
+                <div key={doc.id} className="rounded-md border border-border px-3 py-2.5">
+                  <div className="mb-2 text-sm font-medium">{docLabel(doc.doc_type)}</div>
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex items-center gap-1.5 text-xs">
+                      <input
+                        type="radio"
+                        name={`conflict-${doc.id}`}
+                        checked={decisions[doc.id] === "copy"}
+                        disabled={creating}
+                        onChange={() => setDecisions((prev) => ({ ...prev, [doc.id]: "copy" }))}
+                      />
+                      {t("split.addAsNewCopy")}
+                    </label>
+                    <label className="inline-flex items-center gap-1.5 text-xs">
+                      <input
+                        type="radio"
+                        name={`conflict-${doc.id}`}
+                        checked={decisions[doc.id] === "replace"}
+                        disabled={creating}
+                        onChange={() => setDecisions((prev) => ({ ...prev, [doc.id]: "replace" }))}
+                      />
+                      {t("split.replaceExisting")}
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 disabled={creating}
-                onClick={() => setPendingReplace(null)}
+                onClick={() => setConflicts(null)}
                 className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-60"
               >
                 {t("split.replaceCancel")}
@@ -437,10 +672,10 @@ export function SplitPdfDialog({
               <button
                 type="button"
                 disabled={creating}
-                onClick={runCreate}
+                onClick={() => runCreate(decisions)}
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
               >
-                {creating ? t("split.creating") : t("split.replaceConfirm")}
+                {creating ? t("split.creating") : t("split.conflictConfirm")}
               </button>
             </div>
           </div>
