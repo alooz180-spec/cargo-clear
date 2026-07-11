@@ -17,6 +17,8 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
   const [company, setCompany] = useState<string>(COMPANIES[0]);
   const [supplier, setSupplier] = useState("");
   const [vessel, setVessel] = useState("");
+  const [blNumber, setBlNumber] = useState("");
+  const [eta, setEta] = useState("");
   const [bankChoice, setBankChoice] = useState<string>(IRAQI_BANKS[0]);
   const [bankOther, setBankOther] = useState("");
   const [amount, setAmount] = useState("");
@@ -31,6 +33,8 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
         company: company.trim(),
         supplier: supplier.trim() || null,
         vessel: vessel.trim() || null,
+        bl_number: blNumber.trim() || null,
+        eta: eta || null,
         bank: bank.trim(),
         amount: parseFloat(amount) || 0,
         currency,
@@ -99,6 +103,20 @@ export function NewCaseDialog({ open, onClose }: { open: boolean; onClose: () =>
               {t("field.vessel")} <span className="font-normal">{t("field.optional")}</span>
             </label>
             <input value={vessel} onChange={(e) => setVessel(e.target.value)} className={inputCls} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                {t("field.blNumber")} <span className="font-normal">{t("field.optional")}</span>
+              </label>
+              <input value={blNumber} onChange={(e) => setBlNumber(e.target.value)} className={`${inputCls} font-mono`} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                {t("field.eta")} <span className="font-normal">{t("field.optional")}</span>
+              </label>
+              <input type="date" value={eta} onChange={(e) => setEta(e.target.value)} className={`${inputCls} font-mono`} />
+            </div>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.bank")}</label>

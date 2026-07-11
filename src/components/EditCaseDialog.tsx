@@ -25,6 +25,8 @@ export function EditCaseDialog({
   );
   const [supplier, setSupplier] = useState(kase.supplier ?? "");
   const [vessel, setVessel] = useState(kase.vessel ?? "");
+  const [blNumber, setBlNumber] = useState(kase.bl_number ?? "");
+  const [eta, setEta] = useState(kase.eta ?? "");
   const knownBank = (IRAQI_BANKS as readonly string[]).includes(kase.bank);
   const [bankChoice, setBankChoice] = useState<string>(knownBank ? kase.bank : OTHER_BANK);
   const [bankOther, setBankOther] = useState(knownBank ? "" : kase.bank);
@@ -40,6 +42,8 @@ export function EditCaseDialog({
         company: company.trim(),
         supplier: supplier.trim() || null,
         vessel: vessel.trim() || null,
+        bl_number: blNumber.trim() || null,
+        eta: eta || null,
         bank: bank.trim(),
         amount: parseFloat(amount) || 0,
         currency,
@@ -111,6 +115,20 @@ export function EditCaseDialog({
               {t("field.vessel")} <span className="font-normal">{t("field.optional")}</span>
             </label>
             <input value={vessel} onChange={(e) => setVessel(e.target.value)} className={inputCls} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                {t("field.blNumber")} <span className="font-normal">{t("field.optional")}</span>
+              </label>
+              <input value={blNumber} onChange={(e) => setBlNumber(e.target.value)} className={`${inputCls} font-mono`} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                {t("field.eta")} <span className="font-normal">{t("field.optional")}</span>
+              </label>
+              <input type="date" value={eta} onChange={(e) => setEta(e.target.value)} className={`${inputCls} font-mono`} />
+            </div>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">{t("field.bank")}</label>

@@ -151,6 +151,18 @@ function CaseDetailPage() {
               <dd className="mt-0.5">{kase.vessel}</dd>
             </div>
           )}
+          {kase.bl_number && (
+            <div>
+              <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.blNumber")}</dt>
+              <dd className="mt-0.5 font-mono">{kase.bl_number}</dd>
+            </div>
+          )}
+          {kase.eta && (
+            <div>
+              <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.eta")}</dt>
+              <dd className="mt-0.5 font-mono">{formatDate(kase.eta)}</dd>
+            </div>
+          )}
           <div>
             <dt className="text-xs text-muted-foreground uppercase tracking-wide">{t("field.amount")}</dt>
             <dd className="mt-0.5 font-mono">{formatAmount(kase.amount, kase.currency)}</dd>

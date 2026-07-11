@@ -236,6 +236,12 @@ Deno.serve(async (req) => {
         ...(kase.vessel
           ? ([["Vessel", sanitize(String(kase.vessel))]] as [string, string][])
           : []),
+        ...(kase.bl_number
+          ? ([["B/L number", sanitize(String(kase.bl_number))]] as [string, string][])
+          : []),
+        ...(kase.eta
+          ? ([["ETA", sanitize(String(kase.eta))]] as [string, string][])
+          : []),
         ["Bank", sanitize(bankLabel(String(kase.bank ?? "")))],
         [
           "Amount",
