@@ -244,7 +244,7 @@ const ar: Dict = {
   "cases.title": "المعاملات",
   "cases.subtitle": "معاملة واحدة لكل حوالة برقية.",
   "cases.new": "معاملة جديدة",
-  "cases.searchPlaceholder": "ابحث بالشركة أو المصرف أو الرقم المرجعي أو المبلغ…",
+  "cases.searchPlaceholder": "ابحث بالشركة أو المورّد أو الباخرة أو المصرف أو الرقم المرجعي أو المبلغ…",
   "filter.all": "الكل",
   "filter.in_progress": "قيد الإنجاز",
   "filter.complete": "مكتمل",
