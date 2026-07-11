@@ -35,6 +35,14 @@ function asciiSlug(docType: string): string {
   return ASCII_SLUGS[docType] ?? "document";
 }
 
+// Neutral, unmatchable object name for stored split output. Descriptive words
+// like "invoice"/"customs"/"permission" in a URL get blocked by some content
+// filters, so the stored object is named neutrally; the readable label is kept
+// only in the DB `file_name` field for display.
+function neutralPdfName(): string {
+  return `doc-${Math.random().toString(36).slice(2, 10)}.pdf`;
+}
+
 type PageThumb = { index: number; url: string };
 // A user-created "new copy" target: an extra document that will be created on
 // confirm (is_extra = true, same doc_type as the standard document).
