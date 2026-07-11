@@ -168,45 +168,95 @@ export async function deleteDocument(doc: Pick<DocRow, "id" | "file_path">) {
 /**
  * Open an attached file for inline viewing in a new tab.
  *
- * The tab is opened *synchronously* inside the click gesture BEFORE the async
- * signed-URL request, otherwise Safari/Chrome (desktop and mobile) block the
- * pop-up because window.open would run after an await. We keep the window
- * reference, so we must NOT pass "noopener" here (that would make window.open
- * return null); instead we null out `opener` after navigating for safety.
+ * The signed URL is fetched FIRST; the tab is only opened once we actually have
+ * a working URL (via a temporary anchor click), so we never leave a stranded
+ * about:blank tab when signing fails.
+ *
+ * Self-healing: if the stored file_path no longer matches an object in storage
+ * (e.g. a diverged split upload), we list the document's folder, find the object
+ * whose name starts with `${doc.id}-`, sign THAT path instead, and repair the
+ * row's file_path so future opens are direct.
  *
  * The signed URL keeps its 1-hour expiry and is served inline (no forced
  * download), so PDFs and images render in the browser's viewer.
  */
-export async function openFile(path: string, errorMessage?: string) {
-  const w = window.open("about:blank", "_blank");
+export async function openFile(
+  ref: { id: string; case_id: string; file_path: string | null },
+  errorMessage?: string,
+) {
+  const path = ref.file_path;
+  if (!path) {
+    toast.error(errorMessage ?? "Could not open file");
+    return;
+  }
+
+  const openUrl = (url: string) => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const sign = async (p: string) => supabase.storage.from("case-files").createSignedUrl(p, 3600);
 
   try {
-    const { data, error } = await supabase.storage
-      .from("case-files")
-      .createSignedUrl(path, 3600);
-    if (error) throw error;
-    const url = data.signedUrl;
+    const { data, error } = await sign(path);
 
-    if (w) {
-      try {
-        w.opener = null;
-      } catch {
-        /* cross-origin opener assignment can throw; ignore */
-      }
-      w.location.href = url;
-    } else {
-      // Pop-up was blocked — fall back to a temporary anchor click.
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+    if (!error && data?.signedUrl) {
+      openUrl(data.signedUrl);
+      return;
     }
+
+    // Signing failed — attempt to self-heal a mismatched path.
+    console.error("openFile: failed to sign stored path", { path, error });
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) throw error ?? new Error("Not signed in");
+    const folder = `${userData.user.id}/${ref.case_id}`;
+    const { data: files, error: listError } = await supabase.storage
+      .from("case-files")
+      .list(folder, { limit: 1000 });
+    if (listError) {
+      console.error("openFile: failed to list folder", { folder, listError });
+      throw error ?? listError;
+    }
+
+    const match = files?.find((f) => f.name.startsWith(`${ref.id}-`));
+    if (!match) {
+      console.error("openFile: no matching object found in storage", {
+        folder,
+        docId: ref.id,
+        available: files?.map((f) => f.name),
+      });
+      toast.error("File not found in storage");
+      return;
+    }
+
+    const correctedPath = `${folder}/${match.name}`;
+    const { data: healed, error: healError } = await sign(correctedPath);
+    if (healError || !healed?.signedUrl) {
+      console.error("openFile: failed to sign corrected path", { correctedPath, healError });
+      throw healError ?? new Error("Could not sign corrected path");
+    }
+
+    // Repair the diverged file_path so future opens are direct.
+    const { error: updateError } = await supabase
+      .from("case_documents")
+      .update({ file_path: correctedPath })
+      .eq("id", ref.id);
+    if (updateError) {
+      console.error("openFile: failed to repair file_path", { correctedPath, updateError });
+    }
+
+    openUrl(healed.signedUrl);
   } catch (err) {
-    if (w) w.close();
-    toast.error(errorMessage ?? "Could not open file");
-    throw err;
+    console.error("openFile: error opening file", { path, err });
+    const message =
+      (err as { message?: string } | null)?.message ?? errorMessage ?? "Could not open file";
+    toast.error(message);
   }
 }
+
