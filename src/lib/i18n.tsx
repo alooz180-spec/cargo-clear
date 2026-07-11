@@ -118,6 +118,8 @@ const en: Dict = {
   "case.markSent": "Mark sent to bank",
   "case.reopen": "Reopen",
   "case.submitted": "Submitted to {bank}. Case archived.",
+  "case.backToComplete": "Back to complete",
+
 
   // Export PDF
   "export.button": "Export PDF",
@@ -297,6 +299,8 @@ const ar: Dict = {
   "case.markSent": "تحديد كمُرسل إلى المصرف",
   "case.reopen": "إعادة فتح",
   "case.submitted": "أُرسلت إلى {bank}. تم أرشفة المعاملة.",
+  "case.backToComplete": "الرجوع إلى مكتمل",
+
 
   // Export PDF
   "export.button": "تصدير PDF",
