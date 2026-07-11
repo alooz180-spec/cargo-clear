@@ -299,6 +299,8 @@ const ar: Dict = {
   "case.markSent": "تحديد كمُرسل إلى المصرف",
   "case.reopen": "إعادة فتح",
   "case.submitted": "أُرسلت إلى {bank}. تم أرشفة المعاملة.",
+  "case.backToComplete": "الرجوع إلى مكتمل",
+
 
   // Export PDF
   "export.button": "تصدير PDF",
