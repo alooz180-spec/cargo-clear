@@ -303,6 +303,10 @@ function DocumentRow({
   const { t, docLabel } = useI18n();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  // Track nested dragenter/dragleave so leaving a child element doesn't clear
+  // the highlight prematurely.
+  const dragDepth = useRef(0);
 
   const run = async (fn: () => Promise<void>, errMsg: string) => {
     setBusy(true);
@@ -316,9 +320,34 @@ function DocumentRow({
     }
   };
 
+  const isAcceptedType = (file: File) => {
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    return (ACCEPTED_FILE_EXTENSIONS as readonly string[]).includes(ext);
+  };
+
   const handleFile = (file: File | null) => {
     if (!file) return;
     run(() => attachFile(doc, caseId, file), t("toast.uploadFailed"));
+  };
+
+  const resetDrag = () => {
+    dragDepth.current = 0;
+    setDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLIElement>) => {
+    e.preventDefault();
+    resetDrag();
+    if (busy) return;
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length === 0) return;
+    if (files.length > 1) toast(t("doc.dropOneFile"));
+    const file = files[0];
+    if (!isAcceptedType(file)) {
+      toast.error(t("doc.dropWrongType"));
+      return;
+    }
+    handleFile(file);
   };
 
   // A copy is an extra row that shares the name of a standard manifest document
@@ -327,8 +356,33 @@ function DocumentRow({
     doc.is_extra && (DEFAULT_DOC_TYPES as readonly string[]).includes(doc.doc_type);
 
   return (
-    <li className="flex flex-col gap-2 px-5 py-3.5 sm:flex-row sm:items-center sm:gap-4">
-      <span className="font-mono text-xs text-muted-foreground">
+    <li
+      onDragEnter={(e) => {
+        e.preventDefault();
+        dragDepth.current += 1;
+        if (!busy) setDragOver(true);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        dragDepth.current -= 1;
+        if (dragDepth.current <= 0) resetDrag();
+      }}
+      onDrop={handleDrop}
+      className={`relative flex flex-col gap-2 px-5 py-3.5 transition-colors sm:flex-row sm:items-center sm:gap-4 ${
+        dragOver
+          ? "bg-drop-accent-bg outline-2 -outline-offset-2 outline-dashed outline-drop-accent"
+          : ""
+      }`}
+    >
+      {dragOver && (
+        <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-sm text-xs font-medium text-drop-accent">
+          {t("doc.dropHere")}
+        </span>
+      )}
         {String(index + 1).padStart(2, "0")}
       </span>
       <div className="min-w-0 flex-1">
