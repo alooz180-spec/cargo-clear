@@ -277,6 +277,15 @@ function CaseDetailPage() {
         docs={docs}
       />
 
+      <SplitPdfDialog
+        open={splitting}
+        onClose={() => setSplitting(false)}
+        caseId={caseId}
+        docs={docs}
+        onChanged={invalidate}
+      />
+
+
       {confirmingDelete && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 px-4"
