@@ -105,7 +105,11 @@ export async function attachFile(doc: Pick<DocRow, "id">, caseId: string, file: 
   const path = `${userData.user.id}/${caseId}/${doc.id}-${safeName}`;
   const { error: uploadError } = await supabase.storage
     .from("case-files")
-    .upload(path, file, { upsert: true });
+    .upload(path, file, {
+      upsert: true,
+      // Set an explicit content type so stored objects render inline when viewed.
+      contentType: file.type || "application/octet-stream",
+    });
   if (uploadError) throw uploadError;
   const { error } = await supabase
     .from("case_documents")
