@@ -14,6 +14,23 @@ pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const IGNORE = "__ignore__";
 
+// Stable ASCII base names per doc_type. Non-ASCII (Arabic) filenames can break
+// inline viewing in some browsers, so split output files always get an ASCII name.
+const ASCII_SLUGS: Record<string, string> = {
+  "Swift (Bank Transfer)": "swift",
+  "البيان الكمركي المسبق": "advance-customs-declaration",
+  Invoice: "invoice",
+  "Packing List": "packing-list",
+  "Certificate of Origin": "certificate-of-origin",
+  "Shipping Documents": "shipping-documents",
+  "البيان الكمركي": "customs-declaration",
+  "Exit Permission": "exit-permission",
+};
+
+function asciiSlug(docType: string): string {
+  return ASCII_SLUGS[docType] ?? "document";
+}
+
 type PageThumb = { index: number; url: string };
 
 export function SplitPdfDialog({
@@ -160,8 +177,9 @@ export function SplitPdfDialog({
           const copied = await out.copyPages(source, pageIdxs);
           copied.forEach((pg) => out.addPage(pg));
           const bytes = await out.save();
-          const label = docLabel(doc.doc_type).replace(/[\\/]/g, "-");
-          const file = new File([bytes as BlobPart], `${label}.pdf`, { type: "application/pdf" });
+          const file = new File([bytes as BlobPart], `${asciiSlug(doc.doc_type)}.pdf`, {
+            type: "application/pdf",
+          });
           await attachFile(doc, caseId, file);
           done += 1;
           setProgress({ done, total: plan.length });
