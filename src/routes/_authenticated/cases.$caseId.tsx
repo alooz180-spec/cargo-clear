@@ -383,6 +383,7 @@ function DocumentRow({
           {t("doc.dropHere")}
         </span>
       )}
+      <span className="font-mono text-xs text-muted-foreground">
         {String(index + 1).padStart(2, "0")}
       </span>
       <div className="min-w-0 flex-1">
