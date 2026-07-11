@@ -149,6 +149,8 @@ const en: Dict = {
   "field.company": "Company",
   "field.supplier": "Supplier",
   "field.vessel": "Vessel",
+  "field.blNumber": "B/L number",
+  "field.eta": "ETA",
   "field.bank": "Bank",
   "field.amount": "Amount",
   "field.currency": "Currency",
