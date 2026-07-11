@@ -18,6 +18,7 @@ import {
 } from "@/lib/case-api";
 import {
   ACCEPTED_FILE_TYPES,
+  ACCEPTED_FILE_EXTENSIONS,
   DEFAULT_DOC_TYPES,
   daysOpen,
   formatAmount,
