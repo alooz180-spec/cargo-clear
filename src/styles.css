@@ -132,6 +132,8 @@
   --sidebar-foreground: oklch(0.96 0.005 250);
   --sidebar-muted: oklch(0.68 0.03 257);
   --sidebar-active: oklch(0.3063 0.0611 260.69);
+  --drop-accent: oklch(0.72 0.16 47.4);
+  --drop-accent-bg: oklch(0.32 0.06 55);
 }
 
 @layer base {
