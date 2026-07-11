@@ -89,7 +89,7 @@ export function SplitPdfDialog({
       }
       setPages(thumbs);
       setAssign(nextAssign);
-      doc.destroy();
+      loadingTask.destroy();
     } catch (e) {
       console.error(e);
       toast.error(t("split.loadFailed"));
