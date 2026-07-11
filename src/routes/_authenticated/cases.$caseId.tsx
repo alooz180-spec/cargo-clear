@@ -10,6 +10,7 @@ import {
   attachFile,
   deleteCase,
   deleteDocument,
+  downloadFile,
   getCase,
   openFile,
   removeFile,
