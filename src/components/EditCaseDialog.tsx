@@ -25,6 +25,8 @@ export function EditCaseDialog({
   );
   const [supplier, setSupplier] = useState(kase.supplier ?? "");
   const [vessel, setVessel] = useState(kase.vessel ?? "");
+  const [blNumber, setBlNumber] = useState(kase.bl_number ?? "");
+  const [eta, setEta] = useState(kase.eta ?? "");
   const knownBank = (IRAQI_BANKS as readonly string[]).includes(kase.bank);
   const [bankChoice, setBankChoice] = useState<string>(knownBank ? kase.bank : OTHER_BANK);
   const [bankOther, setBankOther] = useState(knownBank ? "" : kase.bank);
