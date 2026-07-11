@@ -143,11 +143,18 @@ export async function addExtraDocument(caseId: string, name: string, sortOrder: 
  * same manifest position (sort_order) and is individually attachable, verifiable
  * and removable.
  */
-export async function addDocumentCopy(caseId: string, docType: string, sortOrder: number) {
-  const { error } = await supabase
+export async function addDocumentCopy(
+  caseId: string,
+  docType: string,
+  sortOrder: number,
+): Promise<DocRow> {
+  const { data, error } = await supabase
     .from("case_documents")
-    .insert({ case_id: caseId, doc_type: docType, sort_order: sortOrder, is_extra: true });
+    .insert({ case_id: caseId, doc_type: docType, sort_order: sortOrder, is_extra: true })
+    .select()
+    .single();
   if (error) throw error;
+  return data as DocRow;
 }
 
 export async function deleteDocument(doc: Pick<DocRow, "id" | "file_path">) {
